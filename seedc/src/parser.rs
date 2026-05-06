@@ -68,14 +68,14 @@ impl<'a> Parser<'a> {
     }
 
     fn span_from(&self, start: usize) -> SourceSpan {
-    let end = if self.pos > 0 {
-        self.tokens[self.pos - 1].span
-    } else {
-        SourceSpan::new(0.into(), 0)
-    };
-    let len = end.offset().saturating_sub(start);
-    SourceSpan::new(start.into(), len as usize)
-}
+        let end = if self.pos > 0 {
+            self.tokens[self.pos - 1].span
+        } else {
+            SourceSpan::new(0.into(), 0)
+        };
+        let len = end.offset().saturating_sub(start);
+        SourceSpan::new(start.into(), len as usize)
+    }
 
     fn parse_program(&mut self) -> Result<Program, ParseError> {
         let start = self.pos;
@@ -101,6 +101,7 @@ impl<'a> Parser<'a> {
     fn parse_top_level_item(&mut self) -> Result<TopLevelItem, ParseError> {
         let t = self.peek().ok_or(eof_err())?.clone();
         match t.kind {
+            // ── Known specific declarations ──
             TokenKind::KwAgent   => Ok(TopLevelItem::Agent(self.parse_agent()?)),
             TokenKind::KwFn      => Ok(TopLevelItem::Fn(self.parse_fn(Visibility::Priv)?)),
             TokenKind::KwPub     => {
@@ -122,7 +123,19 @@ impl<'a> Parser<'a> {
             TokenKind::KwExtern  => Ok(TopLevelItem::Extern(self.parse_extern()?)),
             TokenKind::KwEffect  => Ok(TopLevelItem::Effect(self.parse_effect()?)),
             TokenKind::KwHandler => Ok(TopLevelItem::Handler(self.parse_handler()?)),
-            _                    => Ok(TopLevelItem::Expression(self.parse_expr()?)),
+
+            // ── Catch‑all: any keyword followed by `{` becomes a Clause ──
+            kind if kind as u8 >= TokenKind::KwAgent as u8
+                 && kind as u8 <= TokenKind::KwZkvm as u8
+                 && self.peek_kind().map_or(false, |k| matches!(k, TokenKind::LBrace)) =>
+            {
+                let id = self.parse_ident()?;
+                let body = self.parse_block()?;
+                Ok(TopLevelItem::Clause(id, body))
+            }
+
+            // ── Everything else tries to parse as an expression ──
+            _ => Ok(TopLevelItem::Expression(self.parse_expr()?)),
         }
     }
 
@@ -143,7 +156,19 @@ impl<'a> Parser<'a> {
         let t = self.peek().ok_or(eof_err())?;
         match t.kind {
             TokenKind::KwFn => Ok(AgentMember::Method(self.parse_fn(Visibility::Priv)?)),
+
+            // Catch‑all: any keyword followed by `{` becomes a named clause block
+            kind if kind as u8 >= TokenKind::KwAgent as u8
+                 && kind as u8 <= TokenKind::KwZkvm as u8
+                 && self.peek_kind().map_or(false, |k| matches!(k, TokenKind::LBrace)) =>
+            {
+                let id = self.parse_ident()?;
+                let body = self.parse_block()?;
+                Ok(AgentMember::Clause(id, body))
+            }
+
             _ => {
+                // Fallback: try to parse as a field (identifier : type ;)
                 let name = self.parse_ident()?;
                 self.expect(TokenKind::Colon)?;
                 let ty = self.parse_type()?;

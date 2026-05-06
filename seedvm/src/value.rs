@@ -14,7 +14,7 @@ use std::collections::HashMap;
 ///
 /// Supports all primitive types, compound types, and agent-specific
 /// references needed by the IR instruction set.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     /// Unit / void value.
     Unit,

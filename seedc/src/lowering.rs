@@ -7,7 +7,6 @@
 use crate::ast::*;
 use crate::ir::*;
 
-/// Lower a whole program into an IR module.
 pub fn lower(program: &Program) -> Module {
     let mut lowerer = Lowerer::new();
     lowerer.lower_program(program);
@@ -40,6 +39,16 @@ impl Lowerer {
                 }
             }
             TopLevelItem::Fn(f) => self.lower_fn_decl(f),
+            TopLevelItem::Expression(e) => {
+                // wrap in a synthetic main
+                let mut func = Function::new("main".into(), vec![], IrType::I32);
+                let entry = func.entry;
+                self.current_func = Some(self.module.add_function(func));
+                let val = self.lower_expr(e, entry);
+                let term = Terminator::Return(Some(val));
+                self.module.functions[self.current_func.unwrap()].set_terminator(entry, term);
+                self.current_func = None;
+            }
             _ => {}
         }
     }
@@ -60,13 +69,10 @@ impl Lowerer {
             let entry = self.module.functions[fid].entry;
             let last_val = self.lower_block(body, entry);
             let term = match last_val {
-                Some(val) => Terminator::Return(Some(val)),
-                None      => Terminator::Return(None),
+                Some(v) => Terminator::Return(Some(v)),
+                None => Terminator::Return(None),
             };
             self.module.functions[fid].set_terminator(entry, term);
-        } else {
-            let func = &mut self.module.functions[fid];
-            func.set_terminator(func.entry, Terminator::Return(None));
         }
         self.current_func = None;
     }
@@ -82,16 +88,13 @@ impl Lowerer {
         last_val
     }
 
-    // ── Statement lowering ──
-
     fn lower_stmt(&mut self, stmt: &Stmt, blk: BlockId) -> Option<Operand> {
         match stmt {
             Stmt::Let(l) => {
                 let val = self.lower_expr(&l.init, blk);
                 let func = self.func();
                 let var = func.new_var();
-                func.push_instr(blk, Instr::new(Opcode::StoreLocal, None,
-                    vec![Operand::Var(var), val]));
+                func.push_instr(blk, Instr::new(Opcode::StoreLocal, None, vec![Operand::Var(var), val]));
                 Some(Operand::Var(var))
             }
             Stmt::Expr(e) => Some(self.lower_expr(e, blk)),
@@ -101,18 +104,28 @@ impl Lowerer {
                 func.set_terminator(blk, Terminator::Return(val));
                 None
             }
+            Stmt::Break(_) => {
+                let func = self.func();
+                func.set_terminator(blk, Terminator::Halt);
+                None
+            }
+            Stmt::Continue(_) => {
+                let func = self.func();
+                func.set_terminator(blk, Terminator::Halt);
+                None
+            }
             Stmt::Item(TopLevelItem::Expression(e)) => Some(self.lower_expr(e, blk)),
             _ => None,
         }
     }
 
-    // ── Expression lowering ──
-
     fn lower_expr(&mut self, expr: &Expr, blk: BlockId) -> Operand {
         match &expr.kind {
+            // ── Literals ──
             ExprKind::Lit(lit) => self.lower_literal(lit),
             ExprKind::Ident(_) => Operand::Var(0),
 
+            // ── Binary / Unary ──
             ExprKind::Binary(op, lhs, rhs) => {
                 let l = self.lower_expr(lhs, blk);
                 let r = self.lower_expr(rhs, blk);
@@ -133,11 +146,9 @@ impl Lowerer {
                 if ir_op == Opcode::Sub {
                     let func = self.func();
                     let zero = func.new_var();
-                    func.push_instr(blk, Instr::new(Opcode::Const, Some(zero),
-                        vec![Operand::Int(0)]));
+                    func.push_instr(blk, Instr::new(Opcode::Const, Some(zero), vec![Operand::Int(0)]));
                     let dest = func.new_var();
-                    func.push_instr(blk, Instr::new(Opcode::Sub, Some(dest),
-                        vec![Operand::Var(zero), operand]));
+                    func.push_instr(blk, Instr::new(Opcode::Sub, Some(dest), vec![Operand::Var(zero), operand]));
                     Operand::Var(dest)
                 } else {
                     let func = self.func();
@@ -147,21 +158,16 @@ impl Lowerer {
                 }
             }
 
-            // ── Call lowering (with built‑in print support) ──
+            // ── Calls (print built‑in first) ──
             ExprKind::Call(callee, args) => {
-                // Special handling for built‑in `print`
                 if let ExprKind::Ident(ident) = &callee.kind {
                     if ident.name == "print" {
-                        let arg_val = args.first()
-                            .map(|a| self.lower_expr(a, blk))
-                            .unwrap_or(Operand::Null);
+                        let arg_val = args.first().map(|a| self.lower_expr(a, blk)).unwrap_or(Operand::Null);
                         let func = self.func();
-                        // Pass the argument directly; the VM will print it
-                        func.push_instr(blk, Instr::new(Opcode::Call, None, vec![arg_val]));
-                        return Operand::Var(func.new_var());
+                        func.push_instr(blk, Instr::new(Opcode::Call, None, vec![arg_val.clone()]));
+                        return arg_val;
                     }
                 }
-                // Generic call lowering
                 let func_op = self.lower_expr(callee, blk);
                 let mut ops = vec![func_op];
                 for a in args { ops.push(self.lower_expr(a, blk)); }
@@ -171,6 +177,7 @@ impl Lowerer {
                 Operand::Var(dest)
             }
 
+            // ── Method call ──
             ExprKind::Method(obj, _name, args) => {
                 let obj_val = self.lower_expr(obj, blk);
                 let mut ops = vec![Operand::Var(0), obj_val];
@@ -181,13 +188,13 @@ impl Lowerer {
                 Operand::Var(dest)
             }
 
-            ExprKind::Member(obj, _field) => {
+            // ── Member / Index / Field access ──
+            ExprKind::Member(obj, _field) | ExprKind::Field(obj, _field) => {
                 let obj_val = self.lower_expr(obj, blk);
                 let field_idx = Operand::String(0);
                 let func = self.func();
                 let dest = func.new_var();
-                func.push_instr(blk, Instr::new(Opcode::Load, Some(dest),
-                    vec![obj_val, field_idx]));
+                func.push_instr(blk, Instr::new(Opcode::Load, Some(dest), vec![obj_val, field_idx]));
                 Operand::Var(dest)
             }
 
@@ -196,29 +203,21 @@ impl Lowerer {
                 let idx_val = self.lower_expr(index, blk);
                 let func = self.func();
                 let dest = func.new_var();
-                func.push_instr(blk, Instr::new(Opcode::Load, Some(dest),
-                    vec![obj_val, idx_val]));
+                func.push_instr(blk, Instr::new(Opcode::Load, Some(dest), vec![obj_val, idx_val]));
                 Operand::Var(dest)
             }
 
-            ExprKind::Field(obj, _field) => {
-                let obj_val = self.lower_expr(obj, blk);
-                let field_idx = Operand::String(0);
-                let func = self.func();
-                let dest = func.new_var();
-                func.push_instr(blk, Instr::new(Opcode::Load, Some(dest),
-                    vec![obj_val, field_idx]));
-                Operand::Var(dest)
-            }
-
+            // ── Block ──
             ExprKind::Block(b) => self.lower_block(b, blk).unwrap_or(Operand::Null),
 
+            // ── Control flow ──
             ExprKind::If(i) => self.lower_if(i, blk),
             ExprKind::Match(m) => self.lower_match(m, blk),
             ExprKind::Loop(l) => self.lower_loop(l, blk),
             ExprKind::While(w) => self.lower_while(w, blk),
             ExprKind::For(f) => self.lower_for(f, blk),
 
+            // ── Return / Break / Continue ──
             ExprKind::Return(Some(e)) => {
                 let val = self.lower_expr(e, blk);
                 let func = self.func();
@@ -230,30 +229,30 @@ impl Lowerer {
                 func.set_terminator(blk, Terminator::Return(None));
                 Operand::Null
             }
-
             ExprKind::Break(_) | ExprKind::Continue => {
                 let func = self.func();
                 func.set_terminator(blk, Terminator::Halt);
                 Operand::Null
             }
 
+            // ── Let ──
             ExprKind::Let(l) => {
                 let val = self.lower_expr(&l.init, blk);
                 let func = self.func();
                 let var = func.new_var();
-                func.push_instr(blk, Instr::new(Opcode::StoreLocal, None,
-                    vec![Operand::Var(var), val]));
+                func.push_instr(blk, Instr::new(Opcode::StoreLocal, None, vec![Operand::Var(var), val]));
                 Operand::Var(var)
             }
 
+            // ── Closure ──
             ExprKind::Closure(_) => {
                 let func = self.func();
                 let dest = func.new_var();
-                func.push_instr(blk, Instr::new(Opcode::Const, Some(dest),
-                    vec![Operand::Func(0)]));
+                func.push_instr(blk, Instr::new(Opcode::Const, Some(dest), vec![Operand::Func(0)]));
                 Operand::Var(dest)
             }
 
+            // ── Compound literals ──
             ExprKind::Tuple(elems) | ExprKind::Array(elems) => {
                 let mut ops = vec![Operand::Int(elems.len() as i64)];
                 for elem in elems { ops.push(self.lower_expr(elem, blk)); }
@@ -283,6 +282,7 @@ impl Lowerer {
                 Operand::Var(dest)
             }
 
+            // ── Pipeline ──
             ExprKind::Pipeline(lhs, _op, rhs) => {
                 let l = self.lower_expr(lhs, blk);
                 let r = self.lower_expr(rhs, blk);
@@ -291,31 +291,31 @@ impl Lowerer {
                 r
             }
 
-            ExprKind::Redirect(_, _, _) |
-            ExprKind::ProcessSub(_, _) => {
+            // ── Redirect / ProcessSub ──
+            ExprKind::Redirect(_, _, _) | ExprKind::ProcessSub(_, _) => {
                 let func = self.func();
                 func.push_instr(blk, Instr::new(Opcode::Nop, None, vec![]));
                 Operand::Null
             }
 
+            // ── HereDoc / HereString ──
             ExprKind::HereDoc(_) => {
                 let func = self.func();
                 let dest = func.new_var();
-                func.push_instr(blk, Instr::new(Opcode::Const, Some(dest),
-                    vec![Operand::String(0)]));
+                func.push_instr(blk, Instr::new(Opcode::Const, Some(dest), vec![Operand::String(0)]));
                 Operand::Var(dest)
             }
-
             ExprKind::HereString(expr) => self.lower_expr(expr, blk),
 
+            // ── Assignment ──
             ExprKind::Assignment(_, _, rhs) => {
                 let r = self.lower_expr(rhs, blk);
                 let func = self.func();
-                func.push_instr(blk, Instr::new(Opcode::StoreLocal, None,
-                    vec![Operand::Var(0), r.clone()]));
+                func.push_instr(blk, Instr::new(Opcode::StoreLocal, None, vec![Operand::Var(0), r.clone()]));
                 r
             }
 
+            // ── Range / Cast ──
             ExprKind::Range(start, _, end) => {
                 let s = self.lower_expr(start, blk);
                 let e = self.lower_expr(end, blk);
@@ -330,8 +330,7 @@ impl Lowerer {
                 let irty = self.convert_type(ty);
                 let func = self.func();
                 let dest = func.new_var();
-                func.push_instr(blk, Instr::new(Opcode::Const, Some(dest),
-                    vec![Operand::Type(irty), val]));
+                func.push_instr(blk, Instr::new(Opcode::Const, Some(dest), vec![Operand::Type(irty), val]));
                 Operand::Var(dest)
             }
 
@@ -343,6 +342,7 @@ impl Lowerer {
                 self.lower_expr(&cast_node, blk)
             }
 
+            // ── Confidence / Think / Ask ──
             ExprKind::Ask(_, expr) => {
                 let val = self.lower_expr(expr, blk);
                 let func = self.func();
@@ -361,8 +361,7 @@ impl Lowerer {
                 };
                 let func = self.func();
                 let dest = func.new_var();
-                func.push_instr(blk, Instr::new(Opcode::ConfidenceGate, Some(dest),
-                    vec![Operand::Float(threshold), val]));
+                func.push_instr(blk, Instr::new(Opcode::ConfidenceGate, Some(dest), vec![Operand::Float(threshold), val]));
                 Operand::Var(dest)
             }
 
@@ -377,11 +376,11 @@ impl Lowerer {
                 };
                 let func = self.func();
                 let dest = func.new_var();
-                func.push_instr(blk, Instr::new(Opcode::Infer, Some(dest),
-                    vec![Operand::Int(budget as i64), val]));
+                func.push_instr(blk, Instr::new(Opcode::Infer, Some(dest), vec![Operand::Int(budget as i64), val]));
                 Operand::Var(dest)
             }
 
+            // ── Discharge / Perform ──
             ExprKind::Discharge(scrutinee, thresholds) => {
                 let val = self.lower_expr(scrutinee, blk);
                 let func = self.func();
@@ -399,6 +398,7 @@ impl Lowerer {
                 Operand::Var(dest)
             }
 
+            // ── Spawn ──
             ExprKind::Spawn(expr) => {
                 let val = self.lower_expr(expr, blk);
                 let func = self.func();
@@ -407,19 +407,21 @@ impl Lowerer {
                 Operand::Var(dest)
             }
 
+            // ── Train / Evolve ──
             ExprKind::Train(_, body) | ExprKind::Evolve(body) => {
                 self.lower_block(body, blk);
                 Operand::Null
             }
 
+            // ── Signal ──
             ExprKind::Signal(_) => {
                 let func = self.func();
                 let dest = func.new_var();
-                func.push_instr(blk, Instr::new(Opcode::Const, Some(dest),
-                    vec![Operand::String(0)]));
+                func.push_instr(blk, Instr::new(Opcode::Const, Some(dest), vec![Operand::String(0)]));
                 Operand::Var(dest)
             }
 
+            // ── React ──
             ExprKind::React(_, rules) => {
                 for rule in rules {
                     self.lower_expr(&rule.condition, blk);
@@ -428,6 +430,7 @@ impl Lowerer {
                 Operand::Null
             }
 
+            // ── Memo / Observe / Infer ──
             ExprKind::Memo(_, expr) => self.lower_expr(expr, blk),
             ExprKind::Observe(expr) | ExprKind::Infer(expr) => {
                 let val = self.lower_expr(expr, blk);
@@ -437,6 +440,7 @@ impl Lowerer {
                 Operand::Var(dest)
             }
 
+            // ── Ontology ──
             ExprKind::Ontology(_, rules) => {
                 for rule in rules {
                     self.lower_expr(&rule.condition, blk);
@@ -445,13 +449,14 @@ impl Lowerer {
                 Operand::Null
             }
 
+            // ── Route / Await ──
             ExprKind::Route(_, expr) | ExprKind::Await(expr) => self.lower_expr(expr, blk),
 
+            // ── Async / Yield ──
             ExprKind::Async(body) => {
                 self.lower_block(body, blk);
                 Operand::Null
             }
-
             ExprKind::Yield(Some(expr)) => {
                 let val = self.lower_expr(expr, blk);
                 let func = self.func();
@@ -460,6 +465,7 @@ impl Lowerer {
             }
             ExprKind::Yield(None) => Operand::Null,
 
+            // ── Select ──
             ExprKind::Select(branches) => {
                 for branch in branches {
                     self.lower_expr(&branch.future, blk);
@@ -481,18 +487,13 @@ impl Lowerer {
         drop(func);
         {
             let func = self.func();
-            func.set_terminator(cur_blk, Terminator::Branch {
-                cond, then_block: then_blk, else_block: else_blk,
-            });
+            func.set_terminator(cur_blk, Terminator::Branch { cond, then_block: then_blk, else_block: else_blk });
         }
-        let _ = self.lower_block(&i.then_branch, then_blk);
+        self.lower_block(&i.then_branch, then_blk);
         self.close_block(then_blk, merge_blk);
         if let Some(eb) = &i.else_branch {
             match &**eb {
-                ElseBranch::Block(b) => {
-                    let _ = self.lower_block(b, else_blk);
-                    self.close_block(else_blk, merge_blk);
-                }
+                ElseBranch::Block(b) => { self.lower_block(b, else_blk); self.close_block(else_blk, merge_blk); }
                 ElseBranch::If(inner) => { self.lower_if(inner, else_blk); }
             }
         } else {
@@ -512,7 +513,7 @@ impl Lowerer {
         if let Some(first_arm) = m.arms.first() {
             let arm_blk = func.add_block();
             arm_blocks.push(arm_blk);
-            let _ = self.lower_expr(&first_arm.body, arm_blk);
+            self.lower_expr(&first_arm.body, arm_blk);
             self.close_block(arm_blk, merge_blk);
         }
         let func = self.func();
@@ -527,7 +528,6 @@ impl Lowerer {
         let func = self.func();
         let header_blk = func.add_block();
         let body_blk = func.add_block();
-        let _exit_blk = func.add_block();
         func.set_terminator(cur_blk, Terminator::Jump(header_blk));
         func.set_terminator(header_blk, Terminator::Jump(body_blk));
         drop(func);
@@ -541,15 +541,13 @@ impl Lowerer {
         let func = self.func();
         let header_blk = func.add_block();
         let body_blk = func.add_block();
-        let _exit_blk = func.add_block();
+        let exit_blk = func.add_block();
         func.set_terminator(cur_blk, Terminator::Jump(header_blk));
         drop(func);
         let cond = self.lower_expr(&w.cond, header_blk);
         {
             let func = self.func();
-            func.set_terminator(header_blk, Terminator::Branch {
-                cond, then_block: body_blk, else_block: _exit_blk,
-            });
+            func.set_terminator(header_blk, Terminator::Branch { cond, then_block: body_blk, else_block: exit_blk });
         }
         self.lower_block(&w.body, body_blk);
         let func = self.func();
@@ -561,7 +559,6 @@ impl Lowerer {
         let func = self.func();
         let header_blk = func.add_block();
         let body_blk = func.add_block();
-        let _exit_blk = func.add_block();
         func.set_terminator(cur_blk, Terminator::Jump(header_blk));
         drop(func);
         self.lower_block(&f.body, body_blk);
@@ -599,9 +596,7 @@ impl Lowerer {
             BinaryOp::Or => Opcode::Or,
             BinaryOp::BitAnd => Opcode::And,
             BinaryOp::BitOr => Opcode::Or,
-            BinaryOp::BitXor => Opcode::Const,
-            BinaryOp::Shl => Opcode::Const,
-            BinaryOp::Shr => Opcode::Const,
+            BinaryOp::BitXor | BinaryOp::Shl | BinaryOp::Shr => Opcode::Const,
         }
     }
 
@@ -609,8 +604,7 @@ impl Lowerer {
         match lit {
             Literal::Int(v, _) => Operand::Int(*v as i64),
             Literal::Float(v) => Operand::Float(*v),
-            Literal::String(_) => Operand::String(0),
-            Literal::RawString(_) => Operand::String(0),
+            Literal::String(_) | Literal::RawString(_) => Operand::String(0),
             Literal::Char(c) => Operand::Int(*c as i64),
             Literal::Bool(b) => Operand::Bool(*b),
             Literal::Null => Operand::Null,

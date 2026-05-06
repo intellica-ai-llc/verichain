@@ -195,7 +195,23 @@ impl<'a> Lexer<'a> {
             '<' => self.check_two('<', '=', TokenKind::Shl, TokenKind::LtEq, TokenKind::Lt),
             '>' => self.check_two('>', '=', TokenKind::Shr, TokenKind::GtEq, TokenKind::Gt),
             '&' => self.check_compound('&', TokenKind::AndAnd, TokenKind::And),
-            '|' => self.check_two('>', '>', TokenKind::PipeGt, TokenKind::PipeGtGt, TokenKind::Pipe),
+            // ── The fixed '|' arm ──
+                        '|' => {
+                if self.peek() == Some(&'|') {
+                    self.advance();
+                    TokenKind::OrOr
+                } else if self.peek() == Some(&'>') {
+                    self.advance();
+                    if self.peek() == Some(&'>') {
+                        self.advance();
+                        TokenKind::PipeGtGt
+                    } else {
+                        TokenKind::PipeGt
+                    }
+                } else {
+                    TokenKind::Pipe
+                }
+            }
             '^' => self.check_compound('=', TokenKind::CaretEq, TokenKind::Caret),
             '~' => TokenKind::Tilde,
             '?' => TokenKind::Question,

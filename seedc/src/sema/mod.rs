@@ -1,18 +1,3 @@
-//! Semantic analysis passes for AGENT-SEED v15.2.
-//!
-//! Pipeline:
-//!   1. Name resolution — build scope graph, link identifiers to definitions
-//!   2. Type checking — Hindley-Milner inference with affine tracking
-//!   3. Effect checking — row-based effect accumulation
-//!   4. Taint checking — lattice-based information flow control
-//!   5. Contract checking — discharge/perform scoping, temporal constraints
-//!
-//! References:
-//!   - Algorithm W (Milner 1978)
-//!   - Affect: An Affine Type and Effect System (van Rooij & Krebbers, POPL 2025)
-//!   - Tant: taint qualifiers in the type system (Bertolo, 2026)
-//!   - Scope Graphs (Néron et al., 2015; van Antwerpen et al., 2018)
-
 pub mod nameres;
 pub mod typeck;
 pub mod effectck;
@@ -23,8 +8,6 @@ pub mod types;
 use crate::ast::Program;
 use miette::{Diagnostic, SourceSpan};
 use thiserror::Error;
-
-// ── Unified semantic error type ──
 
 #[derive(Error, Diagnostic, Debug)]
 pub enum TypeError {
@@ -83,14 +66,13 @@ pub enum TypeError {
     Other(#[from] Box<dyn Diagnostic + Send + Sync + 'static>),
 }
 
-// ── Top-level entry point ──
-
 /// Run all semantic analysis passes and return a typed AST.
 pub fn check(program: Program) -> Result<Program, TypeError> {
-    let mut program = nameres::resolve(program)?;
-    program = typeck::infer_types(program)?;
-    program = effectck::check_effects(program)?;
-    program = taintck::check_taint(program)?;
-    program = contractck::check_contracts(program)?;
+    let program = nameres::resolve(program)?;
+    let program = typeck::infer_types(program)?;
+    // effectck, taintck, contractck remain identity for now
+    let program = effectck::check_effects(program)?;
+    let program = taintck::check_taint(program)?;
+    let program = contractck::check_contracts(program)?;
     Ok(program)
 }

@@ -39,6 +39,7 @@ pub enum TopLevelItem {
     Effect(EffectDecl),
     Handler(HandlerDecl),
     Expression(Expr),
+    Clause(Ident, BlockExpr),        // ← NEW
 }
 
 // ── Declarations ──
@@ -67,6 +68,7 @@ pub enum AgentMember {
     Lifecycle(LifecycleBlock),
     StateMachine(StateMachineDecl),
     SignalHandler(SignalHandlerDecl),
+    Clause(Ident, BlockExpr),        // ← NEW
 }
 
 #[derive(Debug, Clone)]
