@@ -1,0 +1,3 @@
+$ seedc build examples/hello.seed -o /tmp/hello.aslb
+? success
+Compiled examples/hello.seed → /tmp/hello.aslb (* bytes, opt=2)

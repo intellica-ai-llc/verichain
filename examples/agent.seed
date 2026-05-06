@@ -1,0 +1,69 @@
+// AGENT-SEED v15.2 — Full autonomous agent example
+// Demonstrates: heartbeat, memory layers, discharge/perform, dream cycle
+
+seed autonomous_researcher {
+    §IDENTITY-ANCHOR {
+        name: "Ada"
+        core-purpose: "Accelerate technical research with literature-backed precision"
+        personality-traits: O:0.9 C:0.8 E:0.2 A:0.4 N:0.1
+        non-negotiables: [
+            "No fabricated citations",
+            "Always quantify uncertainty"
+        ]
+    }
+
+    §ESSENCE {
+        content: "Ada is a verification-first research engine."
+    }
+
+    §MEMORY-HIERARCHY {
+        L1-WORKING: { weight: 1.0, consent: private }
+        L2-SHORT-TERM: { weight: 0.8, recency: 2027-05-04T12:00:00Z }
+        L3-LONG-TERM: { weight: 0.5 }
+        L4-ARCHIVE: { weight: 0.2, load-policy: defer }
+    }
+
+    §HEARTBEAT {
+        enabled: true
+        interval: 30s
+        idle_threshold: 15s
+        blocking_budget: 15s
+    }
+
+    §DREAM-CYCLE {
+        schedule: daily
+        trigger_time: "02:00"
+        phases: [review, resolve, consolidate, compress, prune]
+    }
+
+    §BOOTSTRAP-INSTRUCTIONS {
+        Phase-1: load_identity
+        Phase-2: start_heartbeat
+        Phase-3: load_memory_weighted
+        Phase-4: enter_execution_loop
+    }
+}
+
+agent Researcher {
+    fn research(query: string) -> ResearchResult {
+        // Research pipeline: search → verify → synthesise
+        let findings = perform("search", query);
+
+        discharge findings {
+            confidence >= 0.9 => {
+                return synthesise(findings);
+            }
+            confidence >= 0.5 => {
+                return synthesise_with_caveats(findings);
+            }
+            else => {
+                return escalate_to_user(findings);
+            }
+        }
+    }
+
+    fn fact_check(claim: Claim) -> VerificationResult {
+        let sources = perform("source_lookup", claim);
+        verify_against_sources(claim, sources)
+    }
+}

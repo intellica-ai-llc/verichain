@@ -1,0 +1,5 @@
+$ seedc --version
+seedc 0.1.0
+
+$ seedvm --version
+seedvm 0.1.0

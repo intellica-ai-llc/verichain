@@ -1,0 +1,19 @@
+[package]
+name = "seedls"
+version = "0.1.0"
+edition = "2021"
+description = "AGENT-SEED v15.2 Language Server Protocol server"
+
+[[bin]]
+name = "seedls"
+path = "src/main.rs"
+
+[dependencies]
+seedc = { path = "../seedc" }
+tower-lsp = { workspace = true }
+lsp-types = { workspace = true }
+tokio = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+ropey = { workspace = true }

@@ -1,0 +1,17 @@
+[package]
+name = "seedc-cli"
+version = "0.1.0"
+edition = "2021"
+description = "AGENT-SEED v15.2 compiler CLI — build, check, run, and verify ASL programs"
+
+[[bin]]
+name = "seedc"
+path = "src/main.rs"
+
+[dependencies]
+seedc = { path = "../seedc" }
+clap = { workspace = true }
+miette = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+serde_json = { workspace = true }

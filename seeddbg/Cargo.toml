@@ -1,0 +1,16 @@
+[package]
+name = "seeddbg"
+version = "0.1.0"
+edition = "2021"
+description = "AGENT-SEED v15.2 debug adapter — DAP server for IDE debugging"
+
+[[bin]]
+name = "seeddbg"
+path = "src/main.rs"
+
+[dependencies]
+dap = "0.4.1-alpha1"
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+serde_json = { workspace = true }

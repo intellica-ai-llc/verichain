@@ -1,0 +1,14 @@
+[package]
+name = "seedfmt"
+version = "0.1.0"
+edition = "2021"
+description = "AGENT-SEED v15.2 code formatter — lossless CST-based formatting"
+
+[[bin]]
+name = "seedfmt"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+miette = { workspace = true }
+rowan = "0.15"
