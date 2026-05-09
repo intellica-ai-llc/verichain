@@ -203,3 +203,1038 @@ K2	Monthly releases	Regular cadence with release notes and migration guides.
 K3	RFC process	Formal process for language evolution proposals.
 K4	Performance benchmarks	Track compile times, VM throughput, and memory usage.
 K5	Ecosystem growth	Nurture community packages, integrations, and tooling.
+
+
+1. Graph Normalization — Differentiable Max‑Weight Independent Set
+Mathematics
+
+x
+i
+(
+t
++
+1
+)
+=
+x
+i
+(
+t
+)
+exp
+⁡
+ ⁣
+(
+w
+i
+−
+∑
+j
+∈
+N
+(
+i
+)
+w
+j
+x
+j
+(
+t
+)
+)
+∑
+k
+∈
+V
+x
+k
+(
+t
+)
+exp
+⁡
+ ⁣
+(
+w
+k
+−
+∑
+j
+∈
+N
+(
+k
+)
+w
+j
+x
+j
+(
+t
+)
+)
+x 
+i
+(t+1)
+​
+ = 
+∑ 
+k∈V
+​
+ x 
+k
+(t)
+​
+ exp(w 
+k
+​
+ −∑ 
+j∈N(k)
+​
+ w 
+j
+​
+ x 
+j
+(t)
+​
+ )
+x 
+i
+(t)
+​
+ exp(w 
+i
+​
+ −∑ 
+j∈N(i)
+​
+ w 
+j
+​
+ x 
+j
+(t)
+​
+ )
+​
+ 
+This is the replicator dynamics for the MWIS problem. The sequence converges to a binary vector that exactly solves MWIS, not just a heuristic. Each step costs 
+O
+(
+∣
+E
+∣
+)
+O(∣E∣); on million‑edge graphs the solution is found in seconds on a CPU and within 1% of the optimum.
+
+Where it goes in the task list
+
+D18 (Orchestrator) – Goal decomposition into non‑conflicting sub‑tasks is exactly an MWIS problem. Replace the current greedy decomposition in Orchestrator::accept_goal with a call to a GraphNormalization solver.
+New sub‑task: D18.1 – Implement MWIS‑based goal planner via Graph Normalization.
+
+D6 (Dream Cycle) – During Consolidate, selecting which episodic entries to promote while blocking semantically identical duplicates is again an MWIS (anti‑echo graph).
+New sub‑task: D6.1 – Use GraphNormalization for anti‑echo‑aware consolidation.
+
+Future – Mixture‑of‑Experts routing – When ASL adds native MoE, routing with mutually exclusive expert selection maps to MWIS. Create a placeholder task:
+New sub‑task: D26 – Mixture‑of‑Experts routing via Graph Normalization.
+
+2. FalconGEMM — Lower‑Complexity Matrix Multiplication
+Mathematics
+
+FalconGEMM partitions a matrix product 
+A
+×
+B
+A×B into a tree of sub‑multiplications so that
+
+M
+(
+m
+,
+k
+,
+n
+)
+=
+∑
+i
+=
+1
+R
+M
+(
+m
+i
+,
+k
+i
+,
+n
+i
+)
+,
+∑
+i
+m
+i
+k
+i
+n
+i
+<
+m
+k
+n
+.
+M(m,k,n)= 
+i=1
+∑
+R
+​
+ M(m 
+i
+​
+ ,k 
+i
+​
+ ,n 
+i
+​
+ ), 
+i
+∑
+​
+ m 
+i
+​
+ k 
+i
+​
+ n 
+i
+​
+ <mkn.
+The runtime is predicted by
+
+T
+pred
+=
+α
+h
+⋅
+flops
++
+β
+h
+⋅
+bytes
+,
+T 
+pred
+​
+ =α 
+h
+​
+ ⋅flops+β 
+h
+​
+ ⋅bytes,
+and the cheapest LCMA is selected. Outperforms cuBLAS/MKL by 7.6‑17.9%.
+
+Where it goes
+
+D1 (Arithmetic ops) is not enough; inference GEMM is a high‑level library call. Add a new optimisation task:
+New sub‑task: D27 – Integrate FalconGEMM under feature‑flag seedvm‑falcon for all infer<T> and embedding search GEMM calls.
+
+3. EVIL + CodeEvolve — Interpretable Skill Synthesis
+Mathematics
+
+EVIL maintains a population of Python functions 
+p
+p. Fitness is
+
+F
+(
+p
+)
+=
+LogLike
+(
+p
+,
+D
+)
+−
+λ
+⋅
+len
+(
+p
+)
+.
+F(p)=LogLike(p,D)−λ⋅len(p).
+LLM‑guided mutation:
+
+p
+new
+←
+LLM
+(
+p
+parent
+,
+error_signal
+)
+.
+p 
+new
+​
+ ←LLM(p 
+parent
+​
+ ,error_signal).
+Every 
+r
+r generations, a reflection step:
+
+Reflection
+=
+LLM
+(
+p
+best
+(
+1
+)
+,
+…
+,
+p
+best
+(
+k
+)
+)
+Reflection=LLM(p 
+best
+(1)
+​
+ ,…,p 
+best
+(k)
+​
+ )
+biases subsequent mutations. CodeEvolve adds island GAs with migration:
+
+P
+(
+i
++
+1
+)
+ 
+mod
+ 
+K
+(
+t
++
+1
+)
+=
+P
+(
+i
++
+1
+)
+ 
+mod
+ 
+K
+(
+t
+)
+∪
+Top
+m
+(
+P
+i
+(
+t
+)
+)
+.
+P 
+(i+1)modK
+(t+1)
+​
+ =P 
+(i+1)modK
+(t)
+​
+ ∪Top 
+m
+​
+ (P 
+i
+(t)
+​
+ ).
+Where it goes
+
+D14 (Evolution engine) – The evolution pipeline currently uses LLM‑only synthesis. Add a new synthesis strategy:
+New sub‑task: D14.1 – Add strategy: "evil" synthesis that evolves highly interpretable ASL functions internally.
+
+C10/C11 (Lowering pass) – The compiler’s lowering could be improved by an EVIL‑evolved peephole optimiser.
+New sub‑task: C11.1 – Use CodeEvolve to synthesise peephole optimisation rules for the IR lowering pass.
+
+4. SCM — Splitting‑Counting‑Merging for Hierarchical Aggregation
+Mathematics
+
+For a tree 
+T
+T with 
+N
+N leaves, preprocess in 
+O
+(
+N
+)
+O(N) so that the mode in any subtree is answered in 
+O
+(
+1
+)
+O(1):
+
+mode
+(
+v
+)
+=
+arg
+⁡
+max
+⁡
+c
+∈
+C
+∑
+I
+∈
+Decomp
+(
+v
+)
+Freq
+(
+c
+,
+I
+)
+.
+mode(v)=arg 
+c∈C
+max
+​
+  
+I∈Decomp(v)
+∑
+​
+ Freq(c,I).
+30× faster than Range‑Mode baselines on billions of values.
+
+Where it goes
+
+D4 (Memory coherency – federated analytics) – The federated L5 layer queries aggregate statistics over entity subtrees.
+New sub‑task: D4.1 – Build SCM index over federated fact store for O(1) subtree‑mode queries.
+
+5. NGO‑IR — Neural Global Optimisation for Hyper‑Parameters
+Mathematics
+
+Given noisy evaluations 
+y
+j
+=
+f
+(
+x
+j
+)
++
+ϵ
+j
+y 
+j
+​
+ =f(x 
+j
+​
+ )+ϵ 
+j
+​
+ , a spline 
+S
+S is fitted. A transformer 
+Φ
+θ
+Φ 
+θ
+​
+  predicts updates:
+
+x
+^
+(
+t
++
+1
+)
+=
+x
+^
+(
+t
+)
++
+Φ
+θ
+(
+S
+,
+{
+y
+j
+}
+,
+x
+^
+(
+t
+)
+)
+.
+x
+^
+  
+(t+1)
+ = 
+x
+^
+  
+(t)
+ +Φ 
+θ
+​
+ (S,{y 
+j
+​
+ }, 
+x
+^
+  
+(t)
+ ).
+Training loss:
+
+L
+(
+θ
+)
+=
+E
+f
+[
+∥
+x
+^
+(
+T
+)
+−
+x
+∗
+∥
+2
+∥
+x
+∗
+∥
+2
++
+ϵ
+]
++
+α
+  
+E
+f
+[
+(
+f
+(
+x
+^
+(
+T
+)
+)
+−
+f
+(
+x
+∗
+)
+)
+2
+]
+.
+L(θ)=E 
+f
+​
+ [ 
+∥x 
+∗
+ ∥ 
+2
+​
+ +ϵ
+∥ 
+x
+^
+  
+(T)
+ −x 
+∗
+ ∥ 
+2
+​
+ 
+​
+ ]+αE 
+f
+​
+ [(f( 
+x
+^
+  
+(T)
+ )−f(x 
+∗
+ )) 
+2
+ ].
+Reduces positional error from 36% to 8%.
+
+Where it goes
+
+D15 (Training engine) – Use NGO‑IR for automatic configuration tuning (decay schedules, heartbeat intervals, confidence thresholds) with far fewer evaluations than Bayesian optimisation.
+New sub‑task: D15.1 – Integrate NGO‑IR for agent hyperparameter optimisation.
+
+6. Beagle — GPU‑Parallel Genetic Programming
+Mathematics
+
+Beagle evolves RPN strings 
+p
+∈
+L
+p∈L with fitness
+
+f
+(
+p
+)
+=
+1
+n
+∑
+i
+=
+1
+n
+(
+p
+(
+x
+i
+)
+−
+y
+i
+)
+2
+.
+f(p)= 
+n
+1
+​
+  
+i=1
+∑
+n
+​
+ (p(x 
+i
+​
+ )−y 
+i
+​
+ ) 
+2
+ .
+Population sizes up to 
+10
+7
+10 
+7
+  individuals; genetic operators run massively parallel on GPU. Outperforms neural nets by up to 61% on symbolic regression.
+
+Where it goes
+
+D14 (Evolution engine) – As an alternative synthesis method for safety‑critical, auditable formulas that must satisfy FGGM contracts.
+New sub‑task: D14.2 – Add Beagle‑based synthesis for closed‑form, provably bounded policies.
+
+7. TurboQuant — Zero‑Loss KV‑Cache Compression
+Mathematics
+
+TurboQuant uses PolarQuant (Haar rotation + polar decomposition) + Quantized JL:
+
+TQ
+(
+x
+)
+=
+Π
+~
+⋅
+PolarQuant
+(
+x
+)
+.
+TQ(x)= 
+Π
+~
+ ⋅PolarQuant(x).
+The overhead per data block is independent of dimension and asymptotically optimal. Achieves 6× compression with zero accuracy loss.
+
+Where it goes
+
+D10 (Confidence system / inference) – When ContextOverflow fires, compress the KV‑cache using TurboQuant before retrying infer<T>.
+New sub‑task: D10.1 – Integrate TurboQuant KV‑cache compression into inference overflow handler.
+
+D2 (Memory subsystem L2) – Compress embedding vectors in L2 semantic memory without retrieval accuracy loss.
+New sub‑task: D2.1 – Apply TurboQuant to semantic‑layer vector storage.
+
+8. bsort / TwinArray — Non‑Comparison Sorting for Dream & Gossip
+Mathematics (bsort)
+
+bsort
+(
+A
+,
+b
+)
+=
+{
+A
+,
+b
+<
+0
+ or 
+∣
+A
+∣
+≤
+1
+,
+bsort
+(
+A
+0
+,
+b
+−
+1
+)
+ 
+∥
+ 
+bsort
+(
+A
+1
+,
+b
+−
+1
+)
+,
+else
+,
+bsort(A,b)={ 
+A,
+bsort(A 
+0
+​
+ ,b−1)∥bsort(A 
+1
+​
+ ,b−1),
+​
+  
+b<0 or ∣A∣≤1,
+else,
+​
+ 
+with 
+A
+0
+=
+{
+x
+:
+bit
+b
+(
+x
+~
+)
+=
+0
+}
+A 
+0
+​
+ ={x:bit 
+b
+​
+ ( 
+x
+~
+ )=0}, 
+A
+1
+=
+{
+x
+:
+bit
+b
+(
+x
+~
+)
+=
+1
+}
+A 
+1
+​
+ ={x:bit 
+b
+​
+ ( 
+x
+~
+ )=1}. Time 
+O
+(
+w
+n
+)
+O(wn), space 
+O
+(
+w
+)
+O(w). TwinArray adds conditional dense‑key handling for 2.7× speedup.
+
+Where it goes
+
+D6 (Dream cycle – compress phase) – Replace the standard sort in DreamPhase::Compress with bsort for 64‑bit keys.
+Add to task: D6 – “Use bsort for sorting episodic entries during compress.”
+
+D4 (Memory coherency – gossip) – Sorting dirty keys for Merkle diff generation uses TwinArray.
+Add to task: D4 – “Use TwinArray for key sorting in gossip rounds.”
+
+9. Layerwise LQR — Second‑Order Preconditioning for Differentiable Training
+Mathematics
+
+min
+⁡
+{
+Δ
+θ
+ℓ
+}
+∑
+ℓ
+=
+1
+L
+(
+Δ
+θ
+ℓ
+⊤
+Q
+ℓ
+Δ
+θ
+ℓ
++
+2
+q
+ℓ
+⊤
+Δ
+θ
+ℓ
+)
+ s.t. 
+Δ
+θ
+ℓ
+=
+A
+ℓ
+Δ
+θ
+ℓ
+−
+1
++
+B
+ℓ
+u
+ℓ
+.
+{Δθ 
+ℓ
+​
+ }
+min
+​
+  
+ℓ=1
+∑
+L
+​
+ (Δθ 
+ℓ
+⊤
+​
+ Q 
+ℓ
+​
+ Δθ 
+ℓ
+​
+ +2q 
+ℓ
+⊤
+​
+ Δθ 
+ℓ
+​
+ ) s.t. Δθ 
+ℓ
+​
+ =A 
+ℓ
+​
+ Δθ 
+ℓ−1
+​
+ +B 
+ℓ
+​
+ u 
+ℓ
+​
+ .
+LLQR learns structured preconditioners 
+H
+ℓ
+H 
+ℓ
+​
+  (diagonal, K‑FAC) without forming the global curvature.
+
+Where it goes
+
+D15 (Training engine) – When ASL adds differentiable computations (e.g., prompt tuning), LLQR provides second‑order convergence.
+New sub‑task: D15.2 – Implement LLQR‑based optimiser for differentiable training blocks.
+(High effort; defer to Phase K if needed.)
+
+10. ParEVO — Automatic Parallelisation of Compiler & VM Phases
+Mathematics
+
+Fitness:
+
+F
+(
+p
+)
+=
+1
+correct
+(
+p
+,
+T
+d
+)
+⋅
+(
+α
+⋅
+Speedup
+(
+p
+)
+−
+β
+⋅
+Complexity
+(
+p
+)
+)
+.
+F(p)=1 
+correct
+​
+ (p,T 
+d
+​
+ )⋅(α⋅Speedup(p)−β⋅Complexity(p)).
+LLM‑guided crossover and mutation using execution profiles (cache misses, load balance). 106× geometric‑mean speedup on parallel tasks.
+
+Where it goes
+
+Phase C (Compiler Completion) – ParEVO can synthesise the parallel orchestration for independent compiler phases (type‑checking, lowering).
+New task: C14 – Parallelise compiler pipeline using ParEVO.
+
+Phase D (VM Completion) – Parallelise memory‑layer operations (e.g., DREAM compress across layers).
+New task: D28 – Parallelise memory/dream operations with ParEVO.
+
+Summary: Improvement ➔ Task Mapping
+Improvement	Task(s)
+Graph Normalization	D18.1 (Orchestrator), D6.1 (DREAM consolidation), D26 (MoE routing)
+FalconGEMM	D27 (GPU‑accelerated GEMM for inference)
+EVIL + CodeEvolve	D14.1 (skill synthesis), C11.1 (compiler peephole opt)
+SCM	D4.1 (federated analytics index)
+NGO‑IR	D15.1 (hyperparameter tuning)
+Beagle	D14.2 (auditable policy synthesis)
+TurboQuant	D10.1 (KV‑cache compression), D2.1 (L2 vector compression)
+bsort / TwinArray	D6 (compress sort), D4 (gossip key sorting)
+Layerwise LQR	D15.2 (differentiable training optimiser)
+ParEVO	C14 (parallel compiler), D28 (parallel memory ops)
+All recommendations stay fully within ASL’s core invariants: uncertainty never silently collapses, every effect is provenance‑tracked, and every synthesised policy is auditable and rollback‑able. If you want me to write the actual Rust signatures or elaborate any integration in detail, just say the word.

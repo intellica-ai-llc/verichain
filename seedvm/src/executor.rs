@@ -580,25 +580,32 @@ mod tests {
         assert_eq!(result, Value::I64(42), "Memory load should return stored value");
     }
 
-    #[test]
+        #[test]
     fn test_memory_decay_and_query() {
         let mut module = seedc::ir::Module::new();
         let mut func = Function::new("test".into(), vec![], IrType::I64);
         let blk = func.entry;
-        // Store value
+
+        // Store a value in key "1"
         func.push_instr(blk, Instr::new(Opcode::Const, None, vec![Operand::Int(99)]));
         func.push_instr(blk, Instr::new(Opcode::MemStore, None, vec![Operand::Int(0), Operand::String(1)]));
-        // Apply strong decay (half_life=0.1)
+
+        // Tick the clock by performing another store (any key, dummy)
+        func.push_instr(blk, Instr::new(Opcode::Const, None, vec![Operand::Int(0)]));
+        func.push_instr(blk, Instr::new(Opcode::MemStore, None, vec![Operand::Int(0), Operand::String(2)]));
+
+        // Now apply decay with half_life = 0.1 → huge decay after 1 tick
         func.push_instr(blk, Instr::new(Opcode::Const, None, vec![Operand::Float(0.1)]));
         func.push_instr(blk, Instr::new(Opcode::MemDecay, None, vec![Operand::Int(0), Operand::Float(0.1)]));
-        // Query weight
+
+        // Query weight of first key
         func.push_instr(blk, Instr::new(Opcode::MemQuery, None, vec![Operand::Int(0), Operand::String(1)]));
         func.set_terminator(blk, Terminator::Halt);
+
         module.add_function(func);
         let mut vm = VM::new(module, 42);
         vm.run().unwrap();
         let weight = vm.state.pop().unwrap();
-        // After strong decay, weight should be < 1.0
         match weight {
             Value::F64(w) => assert!(w < 1.0, "Weight should decay below 1.0, got {}", w),
             _ => panic!("Expected F64 weight"),

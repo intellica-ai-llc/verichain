@@ -25,5 +25,5 @@ hex = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
 chrono = { workspace = true }
 tempfile = "3"
-flate2 = "0.1"
+flate2 = "1.0"
 tar = "0.4"
