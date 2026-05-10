@@ -66,7 +66,7 @@ B7.5	Implement the Level‑4 conformance tests (Evolution, Training, Grammar‑S
 B7.6	Achieve Level‑5 certification with adversarial simulation and red‑team audit.	Level‑5 certification awarded.
 
 
-# hase C – Compiler Completion (6‑8 weeks)
+# phase C – Compiler Completion (6‑8 weeks)
 Goal: The compiler must parse, type‑check, and lower every ASL v15.2 construct (S0‑S2) to correct, verified IR.
 
 #	Task	Description
@@ -126,7 +126,8 @@ E7	seed::capability	Token management, attenuation, delegation, revocation, hyper
 E8	seed::provenance	Event logging, Merkle proof generation, SCITT receipt export.
 E9	seed::crypto	Ed25519 signing, SHA3‑256 hashing, DID derivation, PASETO v4.
 E10	seed::io / seed::net	File I/O, HTTP client, TCP/UDP sockets.
-Phase F – Tooling & Developer Experience (4‑6 weeks)
+
+# Phase F – Tooling & Developer Experience (4‑6 weeks)
 Goal: Opening a .seed file in any editor gives full IDE support.
 
 #	Task	Description
