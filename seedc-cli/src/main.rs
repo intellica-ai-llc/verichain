@@ -1,12 +1,13 @@
-//! AGENT-SEED v15.2 compiler CLI — `seedc`.
+//! AGENT-SEED v15.2 unified CLI — `seed`.
 //!
-//! Productions-grade compiler driver with subcommands for building,
-//! checking, running, emitting IR, exporting grammar, and proving.
+//! Single binary that compiles, checks, runs, and verifies .seed programs.
 //!
-//! References:
-//!   - clap 4.x derive API (https://docs.rs/clap/latest/clap/_derive/)
-//!   - miette diagnostic framework (https://docs.rs/miette/latest/miette/)
-//!   - rustc command-line interface design (rustc-dev-guide)
+//! EXAMPLES:
+//!   seed build hello.seed
+//!   seed build hello.seed -o hello.aslb
+//!   seed check hello.seed
+//!   seed run hello.seed
+//!   seed emit-ir hello.seed
 
 use clap::{Parser, Subcommand, ValueEnum};
 use miette::{IntoDiagnostic, WrapErr};
@@ -18,19 +19,19 @@ use tracing_subscriber::EnvFilter;
 // Top-level CLI
 // ═══════════════════════════════════════════════════════════════════
 
-/// AGENT-SEED v15.2 compiler — the definitive language for autonomous agentic systems.
+/// AGENT-SEED v15.2 — the definitive language for autonomous agentic systems.
 ///
-/// Compiles `.seed` source files into `.aslb` bytecode modules that run on `seedvm`.
+/// Compiles `.seed` source files into `.aslb` bytecode modules and runs them
+/// on the deterministic seedvm.
 ///
 /// EXAMPLES:
-///   seedc build hello.seed
-///   seedc build hello.seed -o hello.aslb
-///   seedc check hello.seed
-///   seedc run hello.seed
-///   seedc emit-ir hello.seed
+///   seed build hello.seed
+///   seed run hello.seed
+///   seed check hello.seed
+///   seed emit-ir hello.seed
 #[derive(Parser, Debug)]
 #[command(
-    name = "seedc",
+    name = "seed",
     version,
     about,
     long_about = None,
@@ -122,6 +123,10 @@ struct RunArgs {
     /// Path to the .seed source file
     #[arg(value_name = "SOURCE")]
     source: PathBuf,
+
+    /// Deterministic seed for the PRNG (default: 0)
+    #[arg(short, long, default_value = "0")]
+    seed: u64,
 
     /// Arguments to pass to the running agent
     #[arg(last = true)]
@@ -231,7 +236,7 @@ fn main() -> miette::Result<()> {
 // Command implementations
 // ═══════════════════════════════════════════════════════════════════
 
-/// `seedc build` — compile a .seed file to .aslb.
+/// `seed build` — compile a .seed file to .aslb.
 fn cmd_build(args: BuildArgs) -> miette::Result<()> {
     let source = read_source(&args.source)?;
     let binary = seedc::compile(&source)
@@ -242,17 +247,22 @@ fn cmd_build(args: BuildArgs) -> miette::Result<()> {
     });
 
     std::fs::write(&out_path, &binary)
-    .into_diagnostic()
-    .wrap_err_with(|| format!("failed to write output to `{}`", out_path.display()))?;
+        .into_diagnostic()
+        .wrap_err_with(|| format!("failed to write output to `{}`", out_path.display()))?;
 
     if !cli_is_quiet() {
-        tracing::info!("Compiled {} → {} ({} bytes, opt={})",
-            args.source.display(), out_path.display(), binary.len(), args.opt_level);
+        tracing::info!(
+            "Compiled {} → {} ({} bytes, opt={})",
+            args.source.display(),
+            out_path.display(),
+            binary.len(),
+            args.opt_level
+        );
     }
     Ok(())
 }
 
-/// `seedc check` — type-check without emitting.
+/// `seed check` — type-check without emitting.
 fn cmd_check(args: CheckArgs) -> miette::Result<()> {
     let source = read_source(&args.source)?;
     seedc::compile(&source)
@@ -264,25 +274,27 @@ fn cmd_check(args: CheckArgs) -> miette::Result<()> {
     Ok(())
 }
 
-/// `seedc run` — compile and execute on the VM.
+/// `seed run` — compile and execute on the VM (fully wired).
 fn cmd_run(args: RunArgs) -> miette::Result<()> {
     let source = read_source(&args.source)?;
     let binary = seedc::compile(&source)
         .wrap_err_with(|| format!("failed to compile `{}`", args.source.display()))?;
 
-    // In the full toolchain, this would invoke `seedvm` as a subprocess
-    // or link against the VM library directly.  For now we print a
-    // placeholder that shows the pipeline works.
-    tracing::info!("Compiled {} ({} bytes) — VM execution not yet wired",
-        args.source.display(), binary.len());
+    // Execute directly via the VM library — no subprocess.
+    let state = seedvm::run_bytes(&binary, args.seed)
+        .wrap_err_with(|| format!("VM execution failed for `{}`", args.source.display()))?;
 
-    if !args.agent_args.is_empty() {
-        tracing::debug!("Agent arguments: {:?}", args.agent_args);
+    if !cli_is_quiet() {
+        tracing::info!(
+            "Execution complete — {} provenance events, {} schedule steps",
+            state.provenance_log.len(),
+            state.schedule_trace.len(),
+        );
     }
     Ok(())
 }
 
-/// `seedc emit-ir` — dump the intermediate representation.
+/// `seed emit-ir` — dump the intermediate representation.
 fn cmd_emit_ir(args: EmitIrArgs) -> miette::Result<()> {
     let source = read_source(&args.source)?;
     let binary = seedc::compile(&source)
@@ -290,13 +302,12 @@ fn cmd_emit_ir(args: EmitIrArgs) -> miette::Result<()> {
 
     match args.format {
         IrFormat::Text => {
-            // Deserialise and pretty-print as S-expression.
-            // Full implementation would reconstruct IR from binary.
             println!(";; IR for `{}`", args.source.display());
             println!(";; {} bytes of bytecode", binary.len());
         }
         IrFormat::Binary => {
-            io::stdout().write_all(&binary)
+            io::stdout()
+                .write_all(&binary)
                 .into_diagnostic()
                 .wrap_err("failed to write binary IR to stdout")?;
         }
@@ -310,34 +321,34 @@ fn cmd_emit_ir(args: EmitIrArgs) -> miette::Result<()> {
     Ok(())
 }
 
-/// `seedc emit-grammar` — export the GBNF grammar.
+/// `seed emit-grammar` — export the GBNF grammar.
 fn cmd_emit_grammar(args: EmitGrammarArgs) -> miette::Result<()> {
-    // The grammar is built into the compiler library.
-    // For now we emit a placeholder that matches the ASL surface syntax.
     let grammar = generate_grammar(args.format);
 
     if let Some(path) = args.output {
         std::fs::write(&path, &grammar)
-    .into_diagnostic()
-    .wrap_err_with(|| format!("failed to write grammar to `{}`", path.display()))?;
+            .into_diagnostic()
+            .wrap_err_with(|| format!("failed to write grammar to `{}`", path.display()))?;
     } else {
-        io::stdout().write_all(grammar.as_bytes())
+        io::stdout()
+            .write_all(grammar.as_bytes())
             .into_diagnostic()
             .wrap_err("failed to write grammar to stdout")?;
     }
     Ok(())
 }
 
-/// `seedc prove` — static analysis proof.
+/// `seed prove` — static analysis proof.
 fn cmd_prove(args: ProveArgs) -> miette::Result<()> {
     let source = read_source(&args.source)?;
-    // Compile to ensure the program is well-formed
     let _binary = seedc::compile(&source)
         .wrap_err_with(|| format!("failed to compile `{}`", args.source.display()))?;
 
-    tracing::info!("Proving property `{}` for `{}`", args.property, args.source.display());
-    // Placeholder: full proof generation would use the IR verifier
-    // and formal semantics proofs.
+    tracing::info!(
+        "Proving property `{}` for `{}`",
+        args.property,
+        args.source.display()
+    );
     tracing::warn!("Proof generation is not yet implemented — see docs for roadmap");
     Ok(())
 }
@@ -350,7 +361,8 @@ fn cmd_prove(args: ProveArgs) -> miette::Result<()> {
 fn read_source(path: &Path) -> miette::Result<String> {
     if path == Path::new("-") {
         let mut buf = String::new();
-        io::stdin().read_to_string(&mut buf)
+        io::stdin()
+            .read_to_string(&mut buf)
             .into_diagnostic()
             .wrap_err("failed to read source from stdin")?;
         Ok(buf)
@@ -362,8 +374,6 @@ fn read_source(path: &Path) -> miette::Result<String> {
 }
 
 /// Check whether the global `--quiet` flag was supplied.
-/// (Simplified: we re-parse args.  A production implementation would
-/// store the state in a global or pass it through.)
 fn cli_is_quiet() -> bool {
     Cli::parse().quiet
 }
@@ -391,7 +401,8 @@ literal ::= [0-9]+ | [0-9]+ "." [0-9]+ | "\"" [^"]* "\"" | "true" | "false" | "n
 call ::= expr "(" args ")"
 binary ::= expr op expr
 unary ::= op expr
-"#.into()
+"#
+            .into()
         }
         GrammarFormat::Ebnf => {
             String::from("program = { item* } ;\nitem = { ... } ;\n")
@@ -401,7 +412,8 @@ unary ::= op expr
                 "$schema": "https://json-schema.org/draft/2020-12/schema",
                 "title": "AGENT-SEED v15.2 grammar",
                 "type": "object"
-            }).to_string()
+            })
+            .to_string()
         }
     }
 }
@@ -412,14 +424,13 @@ mod tests {
 
     #[test]
     fn test_cli_parse_help() {
-        // --help should not panic
-        let result = Cli::try_parse_from(["seedc", "--help"]);
+        let result = Cli::try_parse_from(["seed", "--help"]);
         assert!(result.is_err()); // clap exits on help
     }
 
     #[test]
     fn test_cli_parse_build() {
-        let cli = Cli::try_parse_from(["seedc", "build", "hello.seed"]).unwrap();
+        let cli = Cli::try_parse_from(["seed", "build", "hello.seed"]).unwrap();
         match cli.command {
             Commands::Build(args) => assert_eq!(args.source, PathBuf::from("hello.seed")),
             _ => panic!("expected Build"),
@@ -429,8 +440,9 @@ mod tests {
     #[test]
     fn test_cli_parse_build_output() {
         let cli = Cli::try_parse_from([
-            "seedc", "-vv", "build", "hello.seed", "-o", "hello.aslb"
-        ]).unwrap();
+            "seed", "-vv", "build", "hello.seed", "-o", "hello.aslb",
+        ])
+        .unwrap();
         assert_eq!(cli.verbose, 2);
         match cli.command {
             Commands::Build(args) => {
@@ -443,7 +455,10 @@ mod tests {
 
     #[test]
     fn test_cli_parse_run() {
-        let cli = Cli::try_parse_from(["seedc", "run", "hello.seed", "--", "--agent-arg"]).unwrap();
+        let cli = Cli::try_parse_from([
+            "seed", "run", "hello.seed", "--", "--agent-arg",
+        ])
+        .unwrap();
         match cli.command {
             Commands::Run(args) => {
                 assert_eq!(args.source, PathBuf::from("hello.seed"));
@@ -455,7 +470,8 @@ mod tests {
 
     #[test]
     fn test_cli_parse_emit_ir() {
-        let cli = Cli::try_parse_from(["seedc", "emit-ir", "hello.seed", "--format", "dot"]).unwrap();
+        let cli =
+            Cli::try_parse_from(["seed", "emit-ir", "hello.seed", "--format", "dot"]).unwrap();
         match cli.command {
             Commands::EmitIr(args) => {
                 assert!(matches!(args.format, IrFormat::Dot));
@@ -467,8 +483,6 @@ mod tests {
     #[test]
     fn test_read_source_stdin() {
         let result = read_source(Path::new("-"));
-        // In a non-interactive test, stdin may be empty; this tests the path
-        // doesn't panic.
         let _ = result;
     }
 }

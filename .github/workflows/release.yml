@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            asset_name: seed-linux-x64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            asset_name: seed-linux-arm64
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            asset_name: seed-macos-x64
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            asset_name: seed-macos-arm64
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            asset_name: seed-windows-x64.exe
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+      - run: cargo build --release --target ${{ matrix.target }} -p seedc-cli
+      - run: cp target/${{ matrix.target }}/release/seed ./${{ matrix.asset_name }}
+        shell: bash
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset_name }}

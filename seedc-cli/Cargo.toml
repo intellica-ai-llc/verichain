@@ -2,14 +2,15 @@
 name = "seedc-cli"
 version = "0.1.0"
 edition = "2021"
-description = "AGENT-SEED v15.2 compiler CLI — build, check, run, and verify ASL programs"
+description = "AGENT-SEED v15.2 unified CLI — build, check, run, and verify ASL programs"
 
 [[bin]]
-name = "seedc"
+name = "seed"
 path = "src/main.rs"
 
 [dependencies]
 seedc = { path = "../seedc" }
+seedvm = { path = "../seedvm" }
 clap = { workspace = true }
 miette = { workspace = true }
 tracing = { workspace = true }

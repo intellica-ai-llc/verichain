@@ -1708,6 +1708,7 @@ dependencies = [
  "clap",
  "miette",
  "seedc",
+ "seedvm",
  "serde_json",
  "tracing",
  "tracing-subscriber",
