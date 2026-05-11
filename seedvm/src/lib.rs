@@ -1,3 +1,4 @@
+#![allow(unused)]
 pub mod computation;
 pub mod executor;
 pub mod memory;
