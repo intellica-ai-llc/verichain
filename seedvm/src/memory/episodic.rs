@@ -10,8 +10,6 @@
 //!     uncompressed memory contexts.
 
 use super::{MemoryEntry, MemoryGovernor, MemoryLayer};
-use crate::value::Value;
-use std::collections::HashMap;
 
 /// The episodic reconstructor.
 pub struct EpisodicReconstructor {

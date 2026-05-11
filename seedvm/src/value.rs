@@ -5,7 +5,6 @@
 //! matching compared to C-style `union` approaches.
 
 use crate::computation::Computation;
-use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 

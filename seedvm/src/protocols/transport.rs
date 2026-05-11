@@ -2,7 +2,6 @@
 //!
 //! Supports all four A2A transport modes plus IPC for local agent communication.
 
-use std::collections::HashMap;
 use std::io;
 
 /// Transport protocol variants.

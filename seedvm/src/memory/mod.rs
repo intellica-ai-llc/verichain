@@ -41,9 +41,7 @@ pub use governance::MemoryGovernor;
 pub use layer::MemoryLayer;
 pub use merkle::MerkleIntegrityManager;
 
-use crate::state::{VMState, VmError};
 use crate::value::Value;
-use std::collections::HashMap;
 
 /// A key‑value entry stored in a memory layer.
 #[derive(Debug, Clone)]

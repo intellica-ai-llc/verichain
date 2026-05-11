@@ -8,7 +8,6 @@
 //!   3. Inter‑agent lineage — content‑hash parent tracking, anti‑echo
 //!   4. Remix — store receiver's own role‑evaluated understanding only
 
-use crate::value::Value;
 use std::collections::{HashMap, HashSet};
 
 // ── CAT7: Cognitive Memory Block ──
@@ -265,7 +264,7 @@ impl RemixProcessor {
     pub fn remix(
         &self,
         cmb: &CognitiveMemoryBlock,
-        svaf_result: &SvafResult,
+        _svaf_result: &SvafResult,
     ) -> CognitiveMemoryBlock {
         CognitiveMemoryBlock {
             focus: format!("[remixed by {}] {}", self.receiver_role, cmb.focus),

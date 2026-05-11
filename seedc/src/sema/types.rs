@@ -3,9 +3,7 @@
 //! Mirrors the architecture's `Computation<T>`, `Effect`, `Interval`,
 //! `TaintMeta`, `CostInterval`, `CapabilityToken`, `Decision<T>`, and `Failure`.
 
-use crate::ast::{Ident, SourceSpan};
 use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
 
 // ── Type representation (internal, richer than AST types) ──
 

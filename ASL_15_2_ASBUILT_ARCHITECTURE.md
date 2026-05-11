@@ -4200,7 +4200,31 @@ Phase 4 (16–32 weeks): Build the SCM index for federated analytics; integrate 
 
 Each integration respects ASL’s core invariants: no value exists outside Computation<T, ε>, every effect is tracked through the provenance chain, and all synthesis is auditable and rollback‑able through the corrigibility layer.
 
+# Docs/Landinng Page
+Navigation links:
 
+How it works — #how (anchor, same page)
+Discharge — #discharge (anchor, same page)
+Strata — #strata (anchor, same page)
+Compare — #compare (anchor, same page)
+GitHub — https://github.com/agentseedlanguage-cpu/agentseed
+Docs — https://agentseed.github.io/book
+
+Hero buttons:
+7. Get started → — https://agentseed.github.io/book
+8. View on GitHub — https://github.com/agentseedlanguage-cpu/agentseed
+9. Playground — https://agentseed.github.io/playground
+CTA section:
+10. Read the docs → — https://agentseed.github.io/book
+11. GitHub repo — https://github.com/agentseedlanguage-cpu/agentseed
+12. Join Discord — https://discord.gg/agentseed
+13. Full spec (v15.2) — GitHub blob link (existing file)
+Footer links:
+14. Docs — https://agentseed.github.io/book
+15. API — https://agentseed.github.io/api
+16. Tests — GitHub conformance folder (existing)
+17. Contribute — GitHub CONTRIBUTING.md (existing)
+18. Discord — https://discord.gg/agentseed
 
 
 

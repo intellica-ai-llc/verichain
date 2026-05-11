@@ -347,7 +347,7 @@ impl Inferencer {
                     (Ty::Prim(PrimTy::Bool), EffectSet::pure())
                 };
                 self.unify(&then_ty, &else_ty)?;
-                let mut eff = cond_eff.union(&then_eff).union(&else_eff);
+                let eff = cond_eff.union(&then_eff).union(&else_eff);
                 Ok((self.apply_subst(&then_ty), eff))
             }
 

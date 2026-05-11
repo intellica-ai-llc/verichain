@@ -10,7 +10,6 @@
 //!   - openspawn/openspawn#734 — production A2A architecture
 //!   - Google A2A overview (atlan.com, May 2026)
 
-use crate::value::Value;
 use std::collections::HashMap;
 
 // ── AgentCard ──
@@ -253,7 +252,7 @@ impl A2AService {
     pub fn send_message(
         &mut self,
         task_id: &str,
-        message: &serde_json::Value,
+        _message: &serde_json::Value,
     ) -> Result<(), String> {
         if let Some(task) = self.tasks.get(task_id) {
             if task.state == TaskState::Completed

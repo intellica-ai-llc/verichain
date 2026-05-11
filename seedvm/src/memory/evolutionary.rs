@@ -13,7 +13,6 @@
 //! Eight subsystems: encoder, indexer, retriever, consolidator,
 //! pruner, evolver, verifier, governor.
 
-use crate::value::Value;
 use std::collections::HashMap;
 
 /// Configuration tier for memory persistence.

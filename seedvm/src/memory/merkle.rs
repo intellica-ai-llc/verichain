@@ -6,7 +6,6 @@
 //! Uses blake3 for hashing, producing a 256‑bit (32‑byte) digest.
 //! Based on ChronoMerkle design patterns.
 
-use std::collections::HashMap;
 
 /// A node in the Merkle tree.
 #[derive(Debug, Clone)]

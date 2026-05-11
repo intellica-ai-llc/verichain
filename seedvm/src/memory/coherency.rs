@@ -62,7 +62,7 @@ impl MesiController {
     /// Write a key locally. Invalidates all shared copies.
     pub fn local_write(&mut self, key: &str, value: Value, layer: u8) {
         // Invalidate all peers holding this key
-        if let Some(peers) = self.shared_by.get(key) {
+        if let Some(_peers) = self.shared_by.get(key) {
             // In a real implementation, broadcast invalidation to peers.
             // Here we simply clear the set.
             // Peers will have their state set to Invalid on next access.

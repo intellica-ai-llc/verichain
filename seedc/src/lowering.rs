@@ -44,7 +44,7 @@ impl Lowerer {
             TopLevelItem::Fn(f) => self.lower_fn_decl(f),
             TopLevelItem::Expression(e) => {
                 // wrap in a synthetic main
-                let mut func = Function::new("main".into(), vec![], IrType::I32);
+                let func = Function::new("main".into(), vec![], IrType::I32);
                 let entry = func.entry;
                 self.current_func = Some(self.module.add_function(func));
                 let val = self.lower_expr(e, entry);
@@ -61,7 +61,7 @@ impl Lowerer {
             Some(ty) => self.convert_type(ty),
             None => IrType::Void,
         };
-        let mut func = Function::new(f.name.name.clone(), (0..f.params.len()).collect(), ret_ty);
+        let func = Function::new(f.name.name.clone(), (0..f.params.len()).collect(), ret_ty);
         let fid = self.module.add_function(func);
         self.current_func = Some(fid);
         if let Some(body) = &f.body {

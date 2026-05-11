@@ -11,7 +11,7 @@
 //!   - Crafting Interpreters chapter on static analysis
 
 use crate::ir::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 pub fn verify(module: &Module) -> Result<(), IrError> {
     for func in &module.functions {

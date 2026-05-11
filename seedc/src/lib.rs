@@ -3,6 +3,7 @@
 //! Pipeline: source → tokens → CST → typed AST → IR → binary.
 //! Diagnostic version: writes the parsed AST to `ast_dump.txt`.
 
+#![allow(dead_code)]
 pub mod ast;
 pub mod binary;
 pub mod ir;

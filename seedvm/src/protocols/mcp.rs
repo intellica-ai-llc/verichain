@@ -12,7 +12,6 @@
 //!   - MCP Go SDK v1.4.0 — OAuth support
 //!   - MCPShield defense‑in‑depth (MCPS cryptographic layer)
 
-use crate::value::Value;
 use std::collections::HashMap;
 
 // ── MCP Types ──
@@ -240,7 +239,7 @@ impl MCPClient {
         &self,
         server: &str,
         tool: &str,
-        args: &serde_json::Value,
+        _args: &serde_json::Value,
     ) -> Result<serde_json::Value, String> {
         let conn = self
             .connections

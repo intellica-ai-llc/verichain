@@ -4,7 +4,6 @@
 //! decay function, and provenance tracking configuration.
 
 use super::MemoryEntry;
-use crate::value::Value;
 use std::collections::HashMap;
 
 // ── MemoryLayer enum ──

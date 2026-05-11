@@ -183,8 +183,8 @@ impl VMState {
     // ── Memory layer helpers (delegated to governor) ──
 
     /// Read from a memory layer through the governor.
-    pub fn mem_load(&self, layer: u8, key: &str) -> Option<Value> {
-        let layer = MemoryLayer::try_from(layer).ok()?;
+    pub fn mem_load(&self, layer: u8, _key: &str) -> Option<Value> {
+        let _layer = MemoryLayer::try_from(layer).ok()?;
         // We need mutable access for reinforcement, but this is a read.
         // In production, we'd use interior mutability (RefCell) or accept
         // that reads need &mut self. For now, return a clone.

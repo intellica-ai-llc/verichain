@@ -11,7 +11,7 @@
 //!   4. Compress — reduce storage footprint (10:1).
 //!   5. Prune — apply Ebbinghaus forgetting curve.
 
-use super::{MemoryEntry, MemoryGovernor, MemoryLayer};
+use super::{MemoryGovernor, MemoryLayer};
 use crate::value::Value;
 use std::collections::HashMap;
 
@@ -105,7 +105,7 @@ impl DreamScheduler {
                 DreamPhase::Consolidate => {
                     // Move reinforced episodic entries (L1) to semantic (L2).
                     // Entries with reinforcement_count >= 3 are candidates.
-                    let to_promote: Vec<(String, Value)> = Vec::new();
+                    let _to_promote: Vec<(String, Value)> = Vec::new();
                     // In a real implementation, we'd extract and move.
                     // For now, count candidates.
                     for entry in governor.layers[MemoryLayer::Episodic as usize].iter() {

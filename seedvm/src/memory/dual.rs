@@ -8,8 +8,6 @@
 //! A multi‑dimensional quality gating policy bridges the two.
 
 use super::MemoryEntry;
-use super::MemoryLayer;
-use crate::value::Value;
 
 /// The gating decision for routing a query.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -90,7 +88,7 @@ impl DualProcessController {
     /// across the semantic, temporal, causal, and entity graphs.
     pub fn system2_retrieve<'a>(
         &self,
-        query: &str,
+        _query: &str,
         entries: &'a [MemoryEntry],
     ) -> Vec<&'a MemoryEntry> {
         // Exhaustive traversal with graph expansion
