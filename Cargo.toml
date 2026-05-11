@@ -3,10 +3,6 @@ members = [
   "seedc",
   "seedc-cli",
   "seedvm",
-  "seedpkg",
-  "seedls",
-  "seedfmt",
-  "seeddbg",
 ]
 resolver = "2"
 
