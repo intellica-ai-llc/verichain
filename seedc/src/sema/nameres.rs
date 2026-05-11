@@ -194,7 +194,7 @@ impl Resolver {
                 Ok(())
             }
             TopLevelItem::Use(u) => {
-                self.resolve_use(u);
+                let _ = self.resolve_use(u);
                 Ok(())
             }
             TopLevelItem::Effect(e) => {

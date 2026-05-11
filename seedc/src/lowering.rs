@@ -552,7 +552,7 @@ impl Lowerer {
         let then_blk = func.add_block();
         let else_blk = func.add_block();
         let merge_blk = func.add_block();
-        drop(func);
+        let _ = func;
         {
             let func = self.func();
             func.set_terminator(
@@ -610,7 +610,7 @@ impl Lowerer {
         let body_blk = func.add_block();
         func.set_terminator(cur_blk, Terminator::Jump(header_blk));
         func.set_terminator(header_blk, Terminator::Jump(body_blk));
-        drop(func);
+        let _ = func;
         self.lower_block(&l.body, body_blk);
         let func = self.func();
         func.set_terminator(body_blk, Terminator::Jump(header_blk));
@@ -623,7 +623,7 @@ impl Lowerer {
         let body_blk = func.add_block();
         let exit_blk = func.add_block();
         func.set_terminator(cur_blk, Terminator::Jump(header_blk));
-        drop(func);
+        let _ = func;
         let cond = self.lower_expr(&w.cond, header_blk);
         {
             let func = self.func();
@@ -647,7 +647,7 @@ impl Lowerer {
         let header_blk = func.add_block();
         let body_blk = func.add_block();
         func.set_terminator(cur_blk, Terminator::Jump(header_blk));
-        drop(func);
+        let _ = func;
         self.lower_block(&f.body, body_blk);
         let func = self.func();
         func.set_terminator(body_blk, Terminator::Jump(header_blk));
