@@ -11,6 +11,7 @@ use crate::state::{ProvenanceEventKind, VMState, VmError, VmResult};
 use crate::value::Value;
 use seedc::ir::{Opcode, Operand, Terminator};
 
+#[allow(dead_code)]
 const MAX_STACK: usize = 4096;
 
 pub struct VM {
@@ -509,6 +510,7 @@ impl VM {
         }
     }
 
+    #[allow(dead_code)]
     fn value_to_f64(&self, v: &Value) -> VmResult<f64> {
         match v {
             Value::F64(f) => Ok(*f),

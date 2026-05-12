@@ -37,5 +37,3 @@ rayon = "1"
 uuid = { version = "1", features = ["v4"] }
 chrono = "0.4"
 rust-version = "1.85"
-[profile.release]
-lints = { rust = { unused = "allow", dead_code = "allow", unused_mut = "allow", unused_imports = "allow", unused_must_use = "allow", dropping_references = "allow" } }

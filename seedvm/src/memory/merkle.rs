@@ -9,6 +9,7 @@
 
 /// A node in the Merkle tree.
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct MerkleNode {
     hash: String,
     timestamp: u64,
