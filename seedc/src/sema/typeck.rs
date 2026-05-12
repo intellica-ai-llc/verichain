@@ -53,13 +53,10 @@ impl Inferencer {
 
     fn apply_subst(&self, ty: &Ty) -> Ty {
         match ty {
-            Ty::Var(v) => {
-                if let Some(t) = self.substitution.get(v) {
-                    self.apply_subst(t)
-                } else {
-                    ty.clone()
-                }
+            Ty::Var(v) if !self.substitution.contains_key(v) => {
+                fv.insert(*v);
             }
+            Ty::Var(_) => {}
             Ty::Fn(args, ret, eff) => Ty::Fn(
                 args.iter().map(|a| self.apply_subst(a)).collect(),
                 Box::new(self.apply_subst(ret)),
@@ -158,6 +155,7 @@ impl Inferencer {
         fv
     }
 
+    #[allow(clippy::collapsible_match)]
     fn collect_free_vars(&self, ty: &Ty, fv: &mut HashSet<usize>) {
         match ty {
             Ty::Var(v) => {

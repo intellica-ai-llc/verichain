@@ -60,7 +60,7 @@ impl<'a> Parser<'a> {
 
     fn last_span(&self) -> SourceSpan {
         if self.pos == 0 {
-            SourceSpan::new(0.into(), 0)
+            SourceSpan::new(start.into(), len)
         } else {
             self.tokens[self.pos - 1].span
         }
