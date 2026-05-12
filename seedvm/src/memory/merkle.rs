@@ -6,7 +6,6 @@
 //! Uses blake3 for hashing, producing a 256‑bit (32‑byte) digest.
 //! Based on ChronoMerkle design patterns.
 
-
 /// A node in the Merkle tree.
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
