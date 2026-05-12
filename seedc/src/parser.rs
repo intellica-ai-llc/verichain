@@ -1131,7 +1131,7 @@ fn eof_err() -> ParseError {
     ParseError {
         expected: vec![TokenKind::Ident],
         found: TokenKind::Eof,
-        span: SourceSpan::new(start.into(), len as usize)
+        span: SourceSpan::new(0.into(), 0),
     }
 }
 
