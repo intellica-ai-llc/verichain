@@ -60,6 +60,12 @@ impl Resolver {
         resolver
     }
 
+    impl Default for Resolver {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
     fn alloc_id(&mut self) -> DefId {
         let id = DefId(self.next_id);
         self.next_id += 1;

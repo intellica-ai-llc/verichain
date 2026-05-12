@@ -215,6 +215,12 @@ impl Module {
     }
 }
 
+impl Default for Module {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Function {
     pub fn new(name: String, params: Vec<VarId>, return_ty: IrType) -> Self {
         let max_locals = params.len();

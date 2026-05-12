@@ -76,7 +76,7 @@ impl<'a> Lexer<'a> {
 
     /// Consume characters while `predicate` holds.
     fn take_while(&mut self, pred: impl Fn(char) -> bool) {
-        while self.peek().map_or(false, |&c| pred(c)) {
+        while self.peek().is_some_and(|&c| pred(c)) {
             self.advance();
         }
     }

@@ -42,6 +42,12 @@ impl Inferencer {
         }
     }
 
+    impl Default for Inferencer {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
     fn fresh_var(&mut self) -> Ty {
         let v = self.fresh_counter;
         self.fresh_counter += 1;
@@ -159,11 +165,10 @@ impl Inferencer {
 
     fn collect_free_vars(&self, ty: &Ty, fv: &mut HashSet<usize>) {
         match ty {
-            Ty::Var(v) => {
-                if !self.substitution.contains_key(v) {
-                    fv.insert(*v);
-                }
+            Ty::Var(v) if !self.substitution.contains_key(v) => {
+                fv.insert(*v);
             }
+            Ty::Var(_) => {}
             Ty::Fn(args, ret, _) => {
                 for a in args {
                     self.collect_free_vars(a, fv);

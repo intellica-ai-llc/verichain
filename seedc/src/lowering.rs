@@ -426,8 +426,7 @@ impl Lowerer {
                     ThinkDepth::Medium => 2000,
                     ThinkDepth::Deep => 10000,
                     ThinkDepth::Exhaustive => 50000,
-                    ThinkDepth::Budget(n) => *n as u64,
-                };
+                    ThinkDepth::Budget(n) => *n,
                 let func = self.func();
                 let dest = func.new_var();
                 func.push_instr(

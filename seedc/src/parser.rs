@@ -150,7 +150,7 @@ impl<'a> Parser<'a> {
                 && kind as u8 <= TokenKind::KwZkvm as u8
                 && self
                     .peek_kind()
-                    .map_or(false, |k| matches!(k, TokenKind::LBrace)) =>
+                    .is_some_and(|k| matches!(k, TokenKind::LBrace)) =>
             {
                 let id = self.parse_ident()?;
                 let body = self.parse_block()?;
@@ -192,7 +192,7 @@ impl<'a> Parser<'a> {
                 && kind as u8 <= TokenKind::KwZkvm as u8
                 && self
                     .peek_kind()
-                    .map_or(false, |k| matches!(k, TokenKind::LBrace)) =>
+                    .is_some_and(|k| matches!(k, TokenKind::LBrace)) =>
             {
                 let id = self.parse_ident()?;
                 let body = self.parse_block()?;
@@ -1131,7 +1131,7 @@ fn eof_err() -> ParseError {
     ParseError {
         expected: vec![TokenKind::Ident],
         found: TokenKind::Eof,
-        span: SourceSpan::new(0.into(), 0),
+        span: SourceSpan::new(start.into(), len)
     }
 }
 

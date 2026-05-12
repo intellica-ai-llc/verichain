@@ -99,14 +99,13 @@ fn verify_block(func: &Function, block: &BasicBlock) -> Result<(), IrError> {
             Opcode::Eq | Opcode::NotEq | Opcode::Lt | Opcode::Gt | Opcode::LtEq | Opcode::GtEq => {
                 verify_binary_op(instr)?;
             }
-            Opcode::Perform => {
-                if !discharged {
-                    return Err(IrError::EffectViolation {
-                        msg: "Perform instruction outside of a Discharge context".into(),
-                        span: instr.span,
-                    });
-                }
+            Opcode::Perform if !discharged => {
+                return Err(IrError::EffectViolation {
+                    msg: "Perform instruction outside of a Discharge context".into(),
+                    span: instr.span,
+                });
             }
+            Opcode::Perform => {}
             Opcode::Discharge => {
                 discharged = true;
             }
