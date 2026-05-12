@@ -8,6 +8,8 @@ pub mod schedule;
 pub mod state;
 pub mod value;
 
+#![allow(clippy::all)]
+
 use seedc::ir::Module;
 use std::path::Path;
 
