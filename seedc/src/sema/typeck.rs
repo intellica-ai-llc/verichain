@@ -51,7 +51,7 @@ impl Inferencer {
 
     // ── Substitution & unification ──
 
-        fn apply_subst(&self, ty: &Ty) -> Ty {
+    fn apply_subst(&self, ty: &Ty) -> Ty {
         match ty {
             Ty::Var(v) => {
                 if let Some(t) = self.substitution.get(v) {
