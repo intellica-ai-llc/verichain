@@ -1,8 +1,8 @@
-Agent Seed Language — Specification v15.0
-ASL-SPEC-15 | Edition 2029 | Status: Draft for Review
+Atonomoous Systemms Language — Specification v0.1.0
+ASL-SPEC-0.1.0 | Edition 2026 | Status: Draft for Review
 
----BEGIN AGENT-SEED v15.0---
-@AGENT-SEED/15.0.0
+---BEGIN AGENT-SEED v0.1.0--
+@AGENT-SEED/0.1.0
 
 ╔══════════════════════════════════════════════════════════════════════╗
 ║ §META-SEED — Unified Agentic Language & Virtual ISA                ║
@@ -23,13 +23,13 @@ heartbeat-enabled:         true
 dream-cycle-enabled:       true
 federation-enabled:        true
 evolution-enabled:         true
-corrigibility-enabled:     true    # NEW v15 — language-level invariant
-capability-tokens-enabled: true    # NEW v15 — unforgeable VM-managed tokens
-session-protocols-enabled: true    # NEW v15 — typed A2A communication
-temporal-contracts-enabled: true   # NEW v15 — LTL + SMT enforcement
-provenance-chain-enabled:   true   # NEW v15 — full audit lineage
-grammar-strata-enabled:     true   # NEW v15 — S0/S1/S2/S3 stratification
-cryptographic-identity:     true   # NEW v15 — zkVM binary-hash identity
+corrigibility-enabled:     true    # NEW v0.1.0 — language-level invariant
+capability-tokens-enabled: true    # NEW v0.1.0 — unforgeable VM-managed tokens
+session-protocols-enabled: true    # NEW v0.1.0 — typed A2A communication
+temporal-contracts-enabled: true   # NEW v0.1.0 — LTL + SMT enforcement
+provenance-chain-enabled:   true   # NEW v0.1.0 — full audit lineage
+grammar-strata-enabled:     true   # NEW v0.1.0 — S0/S1/S2/S3 stratification
+cryptographic-identity:     true   # NEW v0.1.0 — zkVM binary-hash identity
 
 §BUILD-CONFIGURATION
 toml[build]
@@ -40,12 +40,12 @@ jit-tier:         "copy-and-patch + extension lowering"
 optimization:     "speed"
 stratum:          "S1"          # default stratum; override per-package
 Stratum Overview
-ASL v15 introduces grammar stratification. Every compiled unit declares a stratum. The compiler rejects any construct above the declared stratum level at parse time.
+ASL v0.1.0 introduces grammar stratification. Every compiled unit declares a stratum. The compiler rejects any construct above the declared stratum level at parse time.
 StratumLabelIntended AudienceS0asl-seedLLM code generation, beginner authors, sandboxed agentsS1asl-coreProduction agents, standard multi-agent systemsS2asl-fullAdvanced agents with evolution and RL trainingS3asl-systemRuntime kernel, corrigibility layer, trusted orchestrators only
 Stratum escalation requires a human principal countersignature recorded in the evolution track. An agent cannot self-escalate its stratum.
 
 §DESIGN-PRINCIPLES
-The following principles govern all design decisions in ASL v15. Where a new feature conflicts with a lower-numbered principle, the lower-numbered principle takes precedence.
+The following principles govern all design decisions in ASL v0.1.0. Where a new feature conflicts with a lower-numbered principle, the lower-numbered principle takes precedence.
 P1 — Corrigibility is structural, not configurable.
 Human oversight hooks, principal hierarchy deference, and shutdown access are enforced by the VM. No agent program can weaken or remove them.
 P2 — Uncertainty is first-class.
@@ -120,7 +120,7 @@ signal, react, memo
 # S0 — Confidence and uncertainty
 ask, confident, uncertain, interval
 
-# S0 — Cognitive inference (NEW v15)
+# S0 — Cognitive inference (NEW v0.1.0)
 infer, schema, cognitive, derive_schema
 
 # S1 — Memory system
@@ -155,13 +155,13 @@ mesh, send, recv, lineage, remix, cat7, svaf
 # S1 — Identity
 identity, anchor, drift, verify_identity, recover
 
-# S1 — Session protocols (NEW v15)
+# S1 — Session protocols (NEW v0.1.0)
 session, global_type, projection, protocol, dual
 
-# S1 — Capability tokens (NEW v15)
+# S1 — Capability tokens (NEW v0.1.0)
 capability, cap, grant, attenuate, delegate, revoke, requires
 
-# S1 — Provenance (NEW v15)
+# S1 — Provenance (NEW v0.1.0)
 provenance, prov, trace, audit_log, merkle_proof
 
 # S1 — Dual-process memory
@@ -183,17 +183,17 @@ consolidator, pruner, evolver, verifier, governor
 evolve, train, policy, reward, curriculum, self_critique
 amendment, simulate, rollback, vote, approve
 
-# S2 — Temporal contracts (NEW v15)
+# S2 — Temporal contracts (NEW v0.1.0)
 temporal, ltl, smt, always, eventually, next, until, once, since
 
-# S2 — Trust lattice (NEW v15)
+# S2 — Trust lattice (NEW v0.1.0)
 trust, lattice, meet, join, untrusted, verified, trusted, system_core
 
-# S3 — Corrigibility layer (NEW v15)
+# S3 — Corrigibility layer (NEW v0.1.0)
 corrigible, corrigibility, deference, switch_preservation
 truthfulness, low_impact, dead_switch, safe_park
 
-# S3 — Cryptographic identity (NEW v15)
+# S3 — Cryptographic identity (NEW v0.1.0)
 zkvm, did, vc, paseto, attestation, delegation_token
 
 1.4 Literals
@@ -262,18 +262,18 @@ escape          ::= "\\" [nrt0\\'"]
 # Type annotation and casting
 ->   =>   as   as?
 
-# Confidence gate (three-valued — NEW v15)
+# Confidence gate (three-valued — NEW v0.1.0)
 ?!   -- Uncertain<T> threshold gate
      -- returns Some(T), None, or Ambiguous
 
 # Annotation and ontology query
 @    -- decoration and ontology constraint access
 
-# Mesh communication (session-typed — updated v15)
+# Mesh communication (session-typed — updated v0.1.0)
 ~>   -- mesh send (requires session protocol type)
 <~   -- mesh recv (requires session protocol type)
 
-# Cryptographic transfer (updated v15)
+# Cryptographic transfer (updated v0.1.0)
 transfer   -- moves ownership across agent boundary with DID verification
 
 # Ontology constraint
@@ -282,10 +282,10 @@ transfer   -- moves ownership across agent boundary with DID verification
 # Federation publish
 @@   -- publish fact to federated scope
 
-# Capability requirement (NEW v15)
+# Capability requirement (NEW v0.1.0)
 requires   -- effect requires named capability token
 
-# Interval construction (NEW v15)
+# Interval construction (NEW v0.1.0)
 ..   -- also used for probability intervals in Uncertain<T> context
 
 1.6 Delimiters
@@ -325,20 +325,20 @@ item ::= function_def
        | evolution_def
        | training_def
        | safety_contract_def
-       | temporal_contract_def          -- NEW v15
+       | temporal_contract_def          -- NEW v0.1.0
        | guardrail_def
        | think_profile_def
        | routing_def
-       | session_def                    -- NEW v15
-       | capability_grant_def          -- NEW v15
-       | trust_policy_def              -- NEW v15
-       | corrigibility_def             -- NEW v15 (S3 only)
-       | dead_switch_def               -- NEW v15 (S3 only)
-       | provenance_policy_def         -- NEW v15
+       | session_def                    -- NEW v0.1.0
+       | capability_grant_def          -- NEW v0.1.0
+       | trust_policy_def              -- NEW v0.1.0
+       | corrigibility_def             -- NEW v0.1.0 (S3 only)
+       | dead_switch_def               -- NEW v0.1.0 (S3 only)
+       | provenance_policy_def         -- NEW v0.1.0
        | federation_def
        | mesh_def
        | identity_anchor_def
-       | cryptographic_identity_def    -- NEW v15
+       | cryptographic_identity_def    -- NEW v0.1.0
        | heartbeat_def
        | dream_cycle_def
        | memory_governance_def
@@ -365,8 +365,8 @@ ebnffunction_def ::= ["pub"] "fn" identifier [generic_params]
                  "(" [parameters] ")" ["->" type]
                  [where_clause]
                  [contract_annotation]
-                 [temporal_annotation]       -- NEW v15
-                 [capability_annotation]     -- NEW v15
+                 [temporal_annotation]       -- NEW v0.1.0
+                 [capability_annotation]     -- NEW v0.1.0
                  block_expression
 
 parameters ::= parameter {"," parameter} [","]
@@ -389,27 +389,27 @@ continue_statement ::= "continue" [label] ";"
 2.3 Agents
 ebnfagent_def ::= ["pub"] "agent" identifier [generic_params]
               ["extends" type]
-              [stratum_clause]              -- NEW v15
+              [stratum_clause]              -- NEW v0.1.0
               [identity_clause]
-              [cryptographic_identity_clause]  -- NEW v15
+              [cryptographic_identity_clause]  -- NEW v0.1.0
               [heartbeat_clause]
               [dream_clause]
               [memory_hierarchy_clause]
               [federation_clause]
               [mesh_clause]
-              [session_clause]             -- NEW v15
-              [capability_clause]          -- updated v15
-              [trust_clause]               -- NEW v15
+              [session_clause]             -- NEW v0.1.0
+              [capability_clause]          -- updated v0.1.0
+              [trust_clause]               -- NEW v0.1.0
               [evolution_policy_clause]
               [training_clause]
               [safety_contract_clause]
-              [temporal_contract_clause]   -- NEW v15
-              [corrigibility_clause]       -- NEW v15 (S3 only)
-              [dead_switch_clause]         -- NEW v15 (S3 only)
+              [temporal_contract_clause]   -- NEW v0.1.0
+              [corrigibility_clause]       -- NEW v0.1.0 (S3 only)
+              [dead_switch_clause]         -- NEW v0.1.0 (S3 only)
               [guardrail_clause]
               [think_profile_clause]
               [routing_clause]
-              [provenance_clause]          -- NEW v15
+              [provenance_clause]          -- NEW v0.1.0
               "{" {agent_member} "}"
 
 agent_member ::= field_def
@@ -459,7 +459,7 @@ dream_field  ::= "schedule"      ":" dream_schedule
                | "max_duration"  ":" duration_literal
                | "phases"        ":" "[" dream_phase {"," dream_phase} "]"
                | "journal"       ":" "{" journal_config "}"
-               | "invariants"    ":" dream_invariant_block    -- NEW v15
+               | "invariants"    ":" dream_invariant_block    -- NEW v0.1.0
 
 dream_schedule ::= "daily" | "session_end" | "idle_30min"
 dream_phase    ::= "review" | "resolve" | "consolidate"
@@ -486,7 +486,7 @@ layer_def ::= identifier ":" "{"
                 ["," "merkle"           ":" boolean_literal]
                 ["," "coherency"        ":" coherency_kind]
                 ["," "cache_tier"       ":" cache_tier_kind]
-                ["," "provenance"       ":" boolean_literal]  -- NEW v15
+                ["," "provenance"       ":" boolean_literal]  -- NEW v0.1.0
               "}"
 
 graph_type     ::= "semantic" | "temporal" | "causal" | "entity" | "associative"
@@ -506,7 +506,7 @@ consolidation_trigger ::= "reinforcement_count" ">=" integer_literal
                          | "time_interval" duration_literal
                          | "session_end"
 
-2.7 Capability Clause (Updated v15)
+2.7 Capability Clause (Updated v0.1.0)
 ebnfcapability_clause ::= "capabilities" "{" {capability_item ","} "}"
 capability_item   ::= "holds"    ":" "[" capability_ref {"," capability_ref} "]"
                     | "requires" ":" "[" effect_capability_pair
@@ -519,7 +519,7 @@ trust_level_kind ::= "Untrusted" | "Verified" | "Trusted" | "SystemCore"
 
 effect_capability_pair ::= effect_identifier "requires" capability_ref
 
-2.8 Session Protocol Clause (New v15)
+2.8 Session Protocol Clause (New v0.1.0)
 ebnfsession_clause ::= "sessions" "{" {session_binding ","} "}"
 session_binding ::= identifier ":" session_type_ref
                   | identifier ":" "{"
@@ -551,7 +551,7 @@ local_session_type ::= "!" type "->" role_name ";" local_session_type   -- send
                      | "rec" identifier "." local_session_type
                      | identifier
 
-2.9 Trust and Corrigibility Clauses (New v15)
+2.9 Trust and Corrigibility Clauses (New v0.1.0)
 ebnftrust_clause ::= "trust" "{" {trust_field ","} "}"
 trust_field  ::= "level"              ":" trust_level_kind
                | "conjunction_check"  ":" boolean_literal
@@ -579,7 +579,7 @@ dead_switch_action ::= "safe_park" "("
 
 alert_target ::= "all_principals" | "primary_principal" | identifier
 
-2.10 Provenance Clause (New v15)
+2.10 Provenance Clause (New v0.1.0)
 ebnfprovenance_clause ::= "provenance" "{" {provenance_field ","} "}"
 provenance_field  ::= "enabled"       ":" boolean_literal
                     | "auto_tag"      ":" boolean_literal
@@ -624,7 +624,7 @@ unary ::= ("-" | "!" | "~" | "*" | "&" | "&&" | "?") unary
 
 confidence_gate_expression ::= call_expression "?!" "(" expression ["," "Ambiguous" "=>" expression] ")"
                              -- three-valued gate: Some(T), None, or Ambiguous
-                             -- NEW v15
+                             -- NEW v0.1.0
 
 try_expression ::= call_expression ["?"]
 
@@ -640,14 +640,14 @@ arguments ::= expression {"," expression}
 2.12 Primary Expressions
 ebnfprimary ::= integer_literal
            | float_literal
-           | probability_literal         -- NEW v15
-           | interval_literal            -- NEW v15
+           | probability_literal         -- NEW v0.1.0
+           | interval_literal            -- NEW v0.1.0
            | string_literal
            | raw_string_literal
            | char_literal
            | boolean_literal
            | null_literal
-           | did_literal                 -- NEW v15
+           | did_literal                 -- NEW v0.1.0
            | identifier
            | "(" expression ")"
            | block_expression
@@ -658,21 +658,21 @@ ebnfprimary ::= integer_literal
            | loop_expression
            | async_block
            | closure_expression
-           | infer_expression            -- NEW v15
-           | uncertain_expression        -- NEW v15
+           | infer_expression            -- NEW v0.1.0
+           | uncertain_expression        -- NEW v0.1.0
            | observe_expression
            | seed_literal
            | redirect_expression
            | process_substitution
            | here_document
-           | mesh_send_expression        -- updated v15
-           | transfer_expression         -- updated v15
-           | session_call_expression     -- NEW v15
-           | capability_perform          -- NEW v15
-           | provenance_tag_expression   -- NEW v15
+           | mesh_send_expression        -- updated v0.1.0
+           | transfer_expression         -- updated v0.1.0
+           | session_call_expression     -- NEW v0.1.0
+           | capability_perform          -- NEW v0.1.0
+           | provenance_tag_expression   -- NEW v0.1.0
            | "self"
 
-2.13 Cognitive Inference Expression (New v15)
+2.13 Cognitive Inference Expression (New v0.1.0)
 ebnfinfer_expression ::= "infer" "<" type ">" "("
                        "model"   ":" model_selector ","
                        "prompt"  ":" expression ","
@@ -689,7 +689,7 @@ think_depth ::= "think::shallow" | "think::medium"
               | "think::deep"    | "think::exhaustive"
 infer<T> always returns Uncertain<T>. The compiler derives a JSON Schema from the struct T. The VM validates model output against this schema before binding the result. A schema validation failure surfaces as Effect::InferenceError.
 
-2.14 Uncertain Expression (New v15)
+2.14 Uncertain Expression (New v0.1.0)
 ebnfuncertain_expression ::= "uncertain" "(" expression "," interval_literal ")"
                         -- wraps a value with an explicit probability interval
                         -- e.g.: uncertain(my_value, [0.7, 0.9])
@@ -698,7 +698,7 @@ observe_expression   ::= "observe" "(" expression "," expression ")"
                         -- Bayesian conditioning: observe(event, prior)
                         -- returns updated Uncertain<T> with narrowed interval
 
-2.15 Capability-Gated Effect Expression (New v15)
+2.15 Capability-Gated Effect Expression (New v0.1.0)
 ebnfcapability_perform ::= "perform" effect_call "requires" capability_ref
 
 effect_call ::= identifier "::" identifier "(" [arguments] ")"
@@ -708,7 +708,7 @@ effect_call ::= identifier "::" identifier "(" [arguments] ")"
 -- perform Effect::WriteMemory(k,v) requires cap::memory_write;
 If the agent does not hold the required capability token at the call site, this is a hard compile error at stratum S1 and above. At S0 it is a compile warning and a runtime CapabilityDenied effect.
 
-2.16 Session-Typed Mesh Communication (Updated v15)
+2.16 Session-Typed Mesh Communication (Updated v0.1.0)
 ebnfmesh_send_expression ::= expression "~>" peer_expression
                            ["as" session_role]
                         -- session role must match the global_type projection
@@ -721,14 +721,14 @@ session_call_expression ::= "mesh_call" "<" session_type_ref ">"
                           -- typed round-trip: send + receive as atomic session step
 All mesh sends at S1 and above require a session type annotation. The compiler verifies that the send type matches the declared session projection for the sender's role. An untyped mesh send compiles only at S0 with a capability token cap::untyped_mesh.
 
-2.17 Transfer Expression (Updated v15)
+2.17 Transfer Expression (Updated v0.1.0)
 ebnftransfer_expression ::= "transfer" "(" expression ")" "~>" peer_expression
                       -- moves owned value to receiving agent
                       -- sending agent's binding is invalidated
                       -- receiving agent's DID is verified at runtime
-Transfer semantics (from Patch 14.10) are strengthened in v15: the target peer expression must resolve to a verified DID. The VM performs a DID resolution and binary hash comparison before completing the transfer. A mismatch surfaces as Effect::IdentityMismatch.
+Transfer semantics (from Patch 14.10) are strengthened in v0.1.0: the target peer expression must resolve to a verified DID. The VM performs a DID resolution and binary hash comparison before completing the transfer. A mismatch surfaces as Effect::IdentityMismatch.
 
-2.18 Provenance Tag Expression (New v15)
+2.18 Provenance Tag Expression (New v0.1.0)
 ebnfprovenance_tag_expression ::= "prov!" "(" expression ")"
                              -- explicitly captures provenance metadata
                              -- for the value produced by expression
@@ -857,7 +857,7 @@ ebnftype ::= primitive_type
         | tuple_type
         | function_type
         | agentic_type
-        | uncertain_type             -- NEW v15 (formalized)
+        | uncertain_type             -- NEW v0.1.0 (formalized)
         | dynamic_type
         | unknown_type
 
@@ -866,11 +866,11 @@ primitive_type ::= "bool" | "i8" | "i16" | "i32" | "i64" | "i128"
                  | "f32" | "f64"
                  | "str" | "String" | "Bytes"
                  | "Timestamp" | "Duration" | "Uuid"
-                 | "DID" | "PASETO"                   -- NEW v15
-                 | "MerkleHash" | "MerkleProof"       -- NEW v15
-                 | "CapabilityToken"                  -- NEW v15
-                 | "DelegationToken"                  -- NEW v15
-                 | "ProvenanceTag"                    -- NEW v15
+                 | "DID" | "PASETO"                   -- NEW v0.1.0
+                 | "MerkleHash" | "MerkleProof"       -- NEW v0.1.0
+                 | "CapabilityToken"                  -- NEW v0.1.0
+                 | "DelegationToken"                  -- NEW v0.1.0
+                 | "ProvenanceTag"                    -- NEW v0.1.0
                  | "SessionId" | "AgentId" | "PrincipalId"
 
 generic_type   ::= path_type "<" type {"," type} ">"
@@ -893,18 +893,18 @@ ebnfagentic_type ::= confidence_type
                | federation_type
                | mesh_type
                | identity_type
-               | crypto_identity_type        -- NEW v15
+               | crypto_identity_type        -- NEW v0.1.0
                | heartbeat_type
                | dream_type
                | ontology_type
-               | session_type                -- NEW v15
-               | capability_type             -- NEW v15
-               | trust_type                  -- NEW v15
-               | provenance_type             -- NEW v15
+               | session_type                -- NEW v0.1.0
+               | capability_type             -- NEW v0.1.0
+               | trust_type                  -- NEW v0.1.0
+               | provenance_type             -- NEW v0.1.0
                | evolutionary_type
                | training_type
                | contract_type
-               | temporal_contract_type      -- NEW v15
+               | temporal_contract_type      -- NEW v0.1.0
                | guardrail_type
                | think_type
                | routing_type
@@ -919,18 +919,18 @@ memory_type         ::= "Memory" "<" type ">" ["@" identifier]
 federation_type     ::= "Fact" "<" type "," type "," type "," scope_kind ">"
 mesh_type           ::= "CMB" "<" type "," type "," type ">"
 identity_type       ::= "IdentityAnchor" "<" identifier ">"
-crypto_identity_type ::= "CryptoIdentity"                              -- NEW v15
-session_type        ::= "Session" "<" identifier "," identifier ">"   -- NEW v15
-capability_type     ::= "Cap" "<" effect_set ">"                      -- NEW v15
-trust_type          ::= "TrustLevel"                                   -- NEW v15
-provenance_type     ::= "ProvenanceTag"                               -- NEW v15
+crypto_identity_type ::= "CryptoIdentity"                              -- NEW v0.1.0
+session_type        ::= "Session" "<" identifier "," identifier ">"   -- NEW v0.1.0
+capability_type     ::= "Cap" "<" effect_set ">"                      -- NEW v0.1.0
+trust_type          ::= "TrustLevel"                                   -- NEW v0.1.0
+provenance_type     ::= "ProvenanceTag"                               -- NEW v0.1.0
 heartbeat_type      ::= "Heartbeat"
 dream_type          ::= "Dream"
 ontology_type       ::= "Ontology" "<" type "," type ">"
 evolutionary_type   ::= "EvolutionPolicy" "<" type ">"
 training_type       ::= "TrainingRegimen" "<" identifier ">"
 contract_type       ::= "SafetyContract"
-temporal_contract_type ::= "TemporalContract"                         -- NEW v15
+temporal_contract_type ::= "TemporalContract"                         -- NEW v0.1.0
 guardrail_type      ::= "Guardrail" "<" type ">"
 think_type          ::= "ThinkProfile" "(" identifier "," integer_literal ")"
 routing_type        ::= "RoutingPolicy" "<" type ">"
@@ -947,7 +947,7 @@ gradual-casts:       "as?" type -- gradual cast with blame tracking
 static-casts:        "as"  type -- static cast, compiler-verified
 blame-tracking:      true
 
-# Uncertain<T> interval inference (NEW v15)
+# Uncertain<T> interval inference (NEW v0.1.0)
 uncertain-flow:      true
   -- The compiler tracks probability intervals through expression trees.
   -- Interval multiplication applies at bind (U2).
@@ -973,20 +973,20 @@ duration_unit    ::= "ns" | "us" | "ms" | "s" | "min" | "h" | "d"
 ebnfeffect_set        ::= "{" effect_identifier {"," effect_identifier} "}"
 effect_identifier ::= path_type
 
----END AGENT-SEED v15.0 PART 1 OF 6---
+---END AGENT-SEED v0.1.0.0 PART 1 OF 6---
 
-End of Part 1. Covers §META-SEED, §LEXICAL-GRAMMAR, and §SYNTAX including all v15 new constructs: grammar stratification, uncertain expressions, cognitive inference syntax, capability-gated effects, session-typed mesh communication, cryptographic identity clauses, corrigibility and dead-switch clauses, provenance expressions, and the updated type system.
+End of Part 1. Covers §META-SEED, §LEXICAL-GRAMMAR, and §SYNTAX including all v0.1.0 new constructs: grammar stratification, uncertain expressions, cognitive inference syntax, capability-gated effects, session-typed mesh communication, cryptographic identity clauses, corrigibility and dead-switch clauses, provenance expressions, and the updated type system.
 
-Agent Seed Language — Specification v15.0
+Agent Seed Language — Specification v0.1.0.0
 Part 2 of 6 — Type System, Uncertain Axioms & Cognitive Types
 
----BEGIN AGENT-SEED v15.0 PART 2 OF 6---
+---BEGIN AGENT-SEED v0.1.0.0 PART 2 OF 6---
 
 ╔══════════════════════════════════════════════════════════════════════╗
 ║ §3 — TYPE SYSTEM — Formal Foundations                              ║
 ╚══════════════════════════════════════════════════════════════════════╝
 §TYPE-SYSTEM
-The ASL v15 type system is a stratified, gradual, probabilistic extension of Hindley-Milner. It combines four distinct type disciplines into a unified system:
+The ASL v0.1.0 type system is a stratified, gradual, probabilistic extension of Hindley-Milner. It combines four distinct type disciplines into a unified system:
 
 Affine types — ownership and borrowing (Rust-lineage), extended to cross-agent boundaries in §CROSS-AGENT-OWNERSHIP
 Algebraic effect types — effect row polymorphism, tracking which effects a computation may perform
@@ -996,7 +996,7 @@ Capability types — Cap<EffectSet> tracking which effects an agent is permitted
 These four disciplines are orthogonal: a value may simultaneously have an ownership constraint, carry uncertainty, require a capability to produce, and be bound to an effect row. The compiler enforces all four simultaneously.
 
 3.1 Kinding
-Every type in ASL v15 belongs to a kind. The kind system is simple — it does not expose dependent kinds to user-level code, reserving them for the compiler's internal representation.
+Every type in ASL v0.1.0 belongs to a kind. The kind system is simple — it does not expose dependent kinds to user-level code, reserving them for the compiler's internal representation.
 Kind ::= Type          -- ordinary value types (Bool, i32, String, ...)
        | Effect        -- effect rows ({NetworkCall, WriteMemory, ...})
        | Region        -- memory regions (session, persistent, federated)
@@ -1004,7 +1004,7 @@ Kind ::= Type          -- ordinary value types (Bool, i32, String, ...)
        | Capability    -- capability token sets
        | Protocol      -- session protocol types
        | Probability   -- probability interval types [lo, hi]
-The kind Probability is new in v15. Values of kind Probability are not user-visible types — they are annotations on Uncertain<T> values tracked by the compiler's interval inference pass.
+The kind Probability is new in v0.1.0. Values of kind Probability are not user-visible types — they are annotations on Uncertain<T> values tracked by the compiler's interval inference pass.
 
 3.2 The Type Judgment
 The core typing judgment has the form:
@@ -1019,7 +1019,7 @@ Ownership constraints in Γ are satisfied — no value is used after move, no mu
 
 
 3.3 Ownership and Borrowing
-ASL v15 inherits Rust-lineage affine types. The rules are:
+ASL v0.1.0 inherits Rust-lineage affine types. The rules are:
 Move semantics. By default, assigning a value to a new binding moves ownership. The original binding is invalidated. The compiler's borrow checker enforces this at compile time.
 let x: MyData = produce();
 let y = x;        // x is moved into y
@@ -1144,13 +1144,13 @@ struct AccessEntry {
 
 3.9 Schema-Constrained Memory Types
 Every memory layer declares a schema type. The compiler generates typed wrappers for all store and retrieve operations. A value that does not match the schema is a compile error (strict mode) or a runtime SchemaViolation effect (gradual mode).
--- Predefined schema types (carried over from v14, extended in v15)
+-- Predefined schema types (carried over from v14, extended in v0.1.0)
 
 memory_category_schemas:
   user_preference:    { key: String, value: PreferenceValue, confidence: Uncertain<Float> }
   project_context:    { key: String, snapshot: ProjectState, timestamp: Timestamp }
   decision_record:    { id: DecisionId, rationale: String, alternatives: Vec<String>,
-                        owner: AgentId, prov: ProvenanceTag }      -- prov added v15
+                        owner: AgentId, prov: ProvenanceTag }      -- prov added v0.1.0
   task_status:        { task: TaskId, status: TaskStatus, progress: Float }
   factual_knowledge:  { fact: String, confidence: Uncertain<Float>,
                         sources: Vec<SourceId>, temporal_range: Option<TimeRange> }
@@ -1160,21 +1160,21 @@ memory_category_schemas:
   hypothesis:         { statement: String, confidence: Uncertain<Float>,
                         evidence: Vec<EvidenceId> }
   observation:        { timestamp: Timestamp, sensor: SensorId, data: SensorData,
-                        prov: ProvenanceTag }                       -- prov added v15
+                        prov: ProvenanceTag }                       -- prov added v0.1.0
   reflection:         { agent: AgentId, critique: String, action_plan: String }
   prediction:         { forecast: String, horizon: TimeRange,
-                        probability: Uncertain<Float> }             -- updated v15
+                        probability: Uncertain<Float> }             -- updated v0.1.0
   meta_memory:        { about: MemoryId, property: String, value: String }
   capability_grant:   { token: CapabilityToken, granted_to: AgentId,
-                        granted_at: Timestamp, expiry: Option<Timestamp> }  -- NEW v15
+                        granted_at: Timestamp, expiry: Option<Timestamp> }  -- NEW v0.1.0
   session_record:     { session_id: SessionId, protocol: String,
-                        parties: Vec<AgentId>, status: SessionStatus }      -- NEW v15
+                        parties: Vec<AgentId>, status: SessionStatus }      -- NEW v0.1.0
 
 ╔══════════════════════════════════════════════════════════════════════╗
 ║ §4 — UNCERTAIN AXIOMS — Formal Specification of Uncertain<T>       ║
 ╚══════════════════════════════════════════════════════════════════════╝
 §UNCERTAIN-AXIOMS
-Uncertain<T> is the foundational probabilistic type in ASL v15. It represents a value of type T paired with a probability interval [lo, hi] ⊆ [0.0, 1.0] expressing the system's confidence that the value is correct. A certain value is the degenerate case [1.0, 1.0].
+Uncertain<T> is the foundational probabilistic type in ASL v0.1.0. It represents a value of type T paired with a probability interval [lo, hi] ⊆ [0.0, 1.0] expressing the system's confidence that the value is correct. A certain value is the degenerate case [1.0, 1.0].
 Uncertain<T> is formalized as a graded probability monad — a monad whose bind operation is graded by interval multiplication. The six axioms below are normative. Conformance test categories UNC-01 through UNC-06 verify each axiom.
 
 4.1 Representation
@@ -1375,7 +1375,7 @@ seedimpl<T> Uncertain<T> {
     -- Serialization
     fn to_json(self) -> String   -- {"value": ..., "lo": ..., "hi": ...}
 
-    -- Provenance-aware constructor (NEW v15)
+    -- Provenance-aware constructor (NEW v0.1.0)
     fn with_prov(value: T, lo: Float, hi: Float, prov: ProvenanceTag) -> Uncertain<T>
 }
 
@@ -1482,7 +1482,7 @@ Option<T> -> { "anyOf": [derive(T), { "type": "null" }] }
   ]
 }
 
--- Float with bounds annotation (NEW v15)
+-- Float with bounds annotation (NEW v0.1.0)
 -- #[bounds(0.0, 1.0)]
 -- f64
 -- -> { "type": "number", "minimum": 0.0, "maximum": 1.0 }
@@ -1754,24 +1754,24 @@ COG-10: #[bounds(lo, hi)] attribute generates minimum/maximum in derived JSON Sc
 COG-11: Cyclic struct used as infer<T> output type produces compile error.
 COG-12: Calibration profile updates are reflected in subsequent infer<T> interval derivation.
 
----END AGENT-SEED v15.0 PART 2 OF 6---
+---END AGENT-SEED v0.1.0.0 PART 2 OF 6---
 
 End of Part 2. Covers §TYPE-SYSTEM (kinding, type judgment, ownership, effect rows, capability rules, trust lattice rules, session duality, memory record type, schema-constrained memory), §UNCERTAIN-AXIOMS (U1 through U6 in full normative form with conformance tests), and §COGNITIVE-TYPES (infer<T> expression, schema derivation rules, confidence interval derivation methods, standard cognitive type library, inference error effects, model routing policy, test-time compute profiles, and conformance tests).
 
-Agent Seed Language — Specification v15.0
+Agent Seed Language — Specification v0.1.0.0
 Part 3 of 6 — Memory Architecture
 
----BEGIN AGENT-SEED v15.0 PART 3 OF 6---
+---BEGIN AGENT-SEED v0.1.0.0 PART 3 OF 6---
 
 ╔══════════════════════════════════════════════════════════════════════╗
 ║ §6 — MEMORY ARCHITECTURE — Complete Specification                  ║
 ╚══════════════════════════════════════════════════════════════════════╝
 §MEMORY-ARCHITECTURE
-ASL v15 defines a unified multi-tier, multi-graph memory system. Memory is not a passive store — it is an active subsystem with its own lifecycle, consistency model, governance rules, and provenance tracking. Every agent has access to the full memory hierarchy; individual layers are enabled or disabled per agent via the memory clause in the agent definition.
+ASL v0.1.0 defines a unified multi-tier, multi-graph memory system. Memory is not a passive store — it is an active subsystem with its own lifecycle, consistency model, governance rules, and provenance tracking. Every agent has access to the full memory hierarchy; individual layers are enabled or disabled per agent via the memory clause in the agent definition.
 
 6.1 Memory Hierarchy Overview
 ┌─────────────────────────────────────────────────────────────────┐
-│                    MEMORY HIERARCHY v15                          │
+│                    MEMORY HIERARCHY v0.1.0                          │
 ├─────────────────────────────────────────────────────────────────┤
 │  L0  Working Memory        — session-scoped, volatile           │
 │  L1  Episodic Memory       — event log, temporal chain          │
@@ -1780,7 +1780,7 @@ ASL v15 defines a unified multi-tier, multi-graph memory system. Memory is not a
 │  L4  Prospective Memory    — scheduled intentions, deadlines    │
 │  L5  Federated Memory      — shared cross-agent fact space      │
 │  L6  Identity Memory       — anchor, lineage, drift log         │
-│  L7  Provenance Index      — audit log, Merkle-proofed (NEW v15)│
+│  L7  Provenance Index      — audit log, Merkle-proofed (NEW v0.1.0)│
 ├─────────────────────────────────────────────────────────────────┤
 │  GRAPH LAYERS (orthogonal to tier)                              │
 │  G1  Semantic Graph        — concept relationships              │
@@ -1935,7 +1935,7 @@ seedmemory_hierarchy {
     },
 
     -- ─────────────────────────────────────────────────────────────
-    -- L7: Provenance Index (NEW v15)
+    -- L7: Provenance Index (NEW v0.1.0)
     -- ─────────────────────────────────────────────────────────────
     provenance_index: {
         schema:       ProvenanceRecord,
@@ -1992,10 +1992,10 @@ enum EpisodeKind {
     HeartbeatDecision,
     DreamPhase,
     EvolutionEvent,
-    CapabilityGrant,        -- NEW v15
-    SessionEvent,           -- NEW v15
-    ProvenanceAudit,        -- NEW v15
-    IdentityAttestation,    -- NEW v15
+    CapabilityGrant,        -- NEW v0.1.0
+    SessionEvent,           -- NEW v0.1.0
+    ProvenanceAudit,        -- NEW v0.1.0
+    IdentityAttestation,    -- NEW v0.1.0
 }
 
 -- L2: Semantic Entry
@@ -2084,16 +2084,16 @@ struct FederatedFact {
     scope:       FederationScope,
     vector_clock: VectorClock,
     prov:        ProvenanceTag,
-    attestation: Option<DelegationToken>,  -- NEW v15: who published this fact
+    attestation: Option<DelegationToken>,  -- NEW v0.1.0: who published this fact
 }
 
 -- L6: Identity Record
 struct IdentityRecord {
     agent_id:        AgentId,
     name:            String,
-    binary_hash:     MerkleHash,           -- NEW v15: content hash of .aslb
-    did:             DID,                  -- NEW v15
-    attestation:     Option<ZkVmProof>,    -- NEW v15
+    binary_hash:     MerkleHash,           -- NEW v0.1.0: content hash of .aslb
+    did:             DID,                  -- NEW v0.1.0
+    attestation:     Option<ZkVmProof>,    -- NEW v0.1.0
     created:         Timestamp,
     drift_log:       Vec<DriftEntry>,
     resilience_level: ResilienceLevel,
@@ -2108,7 +2108,7 @@ struct DriftEntry {
     remediation: String,
 }
 
--- L7: Provenance Record (NEW v15)
+-- L7: Provenance Record (NEW v0.1.0)
 struct ProvenanceRecord {
     id:          ProvenanceId,
     session:     SessionId,
@@ -2251,7 +2251,7 @@ mem.reinforce(episode: EpisodeId, strength: f64)
     -> Result<(), MemoryError>
 
 -- ─────────────────────────────────────────────────────────────────────
--- PROVENANCE OPERATIONS (NEW v15)
+-- PROVENANCE OPERATIONS (NEW v0.1.0)
 -- ─────────────────────────────────────────────────────────────────────
 
 -- Get full provenance chain for a value
@@ -2332,7 +2332,7 @@ seedmemory_governance {
         strategy:   mark_stale_not_delete,
         propagate:  to_all_graph_edges,
         broadcast:  on_federated_scope,
-        audit:      log_to_provenance_index,   -- NEW v15
+        audit:      log_to_provenance_index,   -- NEW v0.1.0
         on_cascade: max_depth(5),
     },
 }
@@ -2411,7 +2411,7 @@ seedhandler StandardMemoryGovernance handles MemoryOps {
 ║ §8 — MEMORY CONSISTENCY — MESI Protocol and CRDT Federation        ║
 ╚══════════════════════════════════════════════════════════════════════╝
 §MEMORY-CONSISTENCY
-Multi-agent deployments require a principled approach to memory consistency. ASL v15 uses the MESI cache coherency protocol for strongly-consistent layers and CRDT-based eventual consistency for federated layers.
+Multi-agent deployments require a principled approach to memory consistency. ASL v0.1.0 uses the MESI cache coherency protocol for strongly-consistent layers and CRDT-based eventual consistency for federated layers.
 
 8.1 MESI Protocol
 MESI (Modified, Exclusive, Shared, Invalid) is applied to memory layers with coherency: mesi. In a multi-agent system where multiple agents hold references to the same memory region, MESI ensures that writes are visible to all agents and that stale reads are prevented.
@@ -2610,7 +2610,7 @@ seedepisodic_recon {
         {
             name:    identity_verify,
             action:  load_identity_anchor,
-            verify:  cryptographic_hash_match,    -- NEW v15
+            verify:  cryptographic_hash_match,    -- NEW v0.1.0
             on_fail: halt_and_alert,
         },
         {
@@ -2630,7 +2630,7 @@ seedepisodic_recon {
             timeout: 50ms,
         },
         {
-            name:    provenance_anchor,            -- NEW v15
+            name:    provenance_anchor,            -- NEW v0.1.0
             action:  load_last_provenance_root,
             verify:  merkle_root_match,
             on_fail: alert_and_continue,           -- non-blocking for reconstruction
@@ -2702,7 +2702,7 @@ seedmemory_cycle {
             working_memory_delta,
             confidence_interval_shifts,
         ],
-        log_to_provenance: true,   -- NEW v15: each tick is a provenance entry
+        log_to_provenance: true,   -- NEW v0.1.0: each tick is a provenance entry
     },
 
     update_phase: {
@@ -2868,7 +2868,7 @@ seedevolutionary_memory {
                 merkle_root_valid,
                 schema_compliance_100pct,
                 no_orphaned_graph_edges,
-                provenance_chain_intact,    -- NEW v15
+                provenance_chain_intact,    -- NEW v0.1.0
                 identity_anchor_unchanged,
             ],
             on_fail: rollback_evolution,
@@ -2890,7 +2890,7 @@ seedevolutionary_memory {
 ║ §14 — DREAM CYCLE — Formal Specification with Invariants           ║
 ╚══════════════════════════════════════════════════════════════════════╝
 §DREAM-CYCLE
-The dream cycle is the agent's offline memory maintenance and integration process. It runs when the agent is idle, at session end, or on a declared schedule. In v15, the dream cycle has a formal pre/post-condition specification that is verified by the VM before and after each dream.
+The dream cycle is the agent's offline memory maintenance and integration process. It runs when the agent is idle, at session end, or on a declared schedule. In v0.1.0, the dream cycle has a formal pre/post-condition specification that is verified by the VM before and after each dream.
 
 14.1 Dream Cycle Configuration
 seeddream {
@@ -2903,11 +2903,11 @@ seeddream {
     journal: {
         path:    "./dream_journals/",
         format:  markdown,
-        sign:    ed25519,          -- NEW v15: journals are signed
+        sign:    ed25519,          -- NEW v0.1.0: journals are signed
         retain:  365d,
     },
 
-    invariants: {                  -- NEW v15: formal pre/post-conditions
+    invariants: {                  -- NEW v0.1.0: formal pre/post-conditions
         post_merkle_verify:   true,
         post_safety_check:    true,
         idempotent:           true,
@@ -2976,7 +2976,7 @@ Operations: For each qualifying episodic entry:
               2. Check anti-echo: if similar concept exists, merge
               3. If no similar concept: create new SemanticEntry
               4. Link via graph edges (causal, temporal, associative)
-              5. Tag with provenance chain from episodic entry (NEW v15)
+              5. Tag with provenance chain from episodic entry (NEW v0.1.0)
               6. Mark episodic entry as consolidated
 Duration:   max 30% of dream budget.
 
@@ -3003,14 +3003,14 @@ Protected:  identity_mem, provenance_index, any entry marked protected
 Operations: Move qualifying entries to archive (not delete).
             Archive entries are excluded from normal retrieval
             but remain accessible via mem.archive_query().
-            Log each pruned entry to provenance_index (NEW v15).
+            Log each pruned entry to provenance_index (NEW v0.1.0).
 Duration:   max 5% of dream budget.
 
 PHASE 6: WRITE_JOURNAL
 ──────────────────────
 Purpose:    Produce a human-readable dream summary and update identity.
 Operations: 1. Infer a narrative summary of the dream cycle
-            2. Write to journal file with ed25519 signature (NEW v15)
+            2. Write to journal file with ed25519 signature (NEW v0.1.0)
             3. Update identity_mem with new binary_hash (if evolution occurred)
             4. Broadcast Merkle root to federation peers
             5. Surface DreamComplete effect to heartbeat loop
@@ -3050,7 +3050,7 @@ Q7: confidence_drift <= max_confidence_drift (default 0.05)
     -- has not shifted by more than 5% from its pre-dream value.
     -- This prevents dreams from systematically inflating or deflating confidence.
 
-Q8: provenance_chain_intact == true      -- NEW v15
+Q8: provenance_chain_intact == true      -- NEW v0.1.0
     -- Every ProvenanceRecord written during the dream has a valid
     -- Merkle proof linking it to the root.
 
@@ -3060,7 +3060,7 @@ Q9: dream_idempotent: dream(dream(state)) ≡ dream(state)
     -- The VM does not verify this on every production dream
     -- (cost-prohibitive); the conformance suite verifies it statically.
 
-Q10: journal_written_and_signed == true  -- NEW v15
+Q10: journal_written_and_signed == true  -- NEW v0.1.0
      -- The dream journal file was written and signed with ed25519.
      -- Verification: seed audit --verify-journal <session_id>
 
@@ -3111,7 +3111,7 @@ MEM-17: Write updates Merkle root within same transaction.
 MEM-18: Merkle root broadcast to federation after dream phase 6.
 MEM-19: Merkle verification failure triggers quarantine_and_alert.
 
--- Provenance Index (NEW v15)
+-- Provenance Index (NEW v0.1.0)
 MEM-20: Every infer<T> call produces a ProvenanceRecord in provenance_index.
 MEM-21: Every mem.store() produces a ProvenanceRecord when provenance: true.
 MEM-22: Provenance chain is Merkle-verifiable end-to-end.
@@ -3123,11 +3123,11 @@ MESI-01: Shared copy transitions to Invalid within one tick after remote write.
 MESI-02: Write to Shared copy broadcasts Invalidate to all holders.
 MESI-03: Modified copy is written back to persistent store on eviction.
 
----END AGENT-SEED v15.0 PART 3 OF 6---
+---END AGENT-SEED v0.1.0.0 PART 3 OF 6---
 
 End of Part 3. Covers the complete memory system: §MEMORY-ARCHITECTURE (all seven layers, schemas, operations API), §MEMORY-GOVERNANCE (tri-path router, memory effects, governance handlers), §MEMORY-CONSISTENCY (MESI protocol, CRDT federation, Merkle integrity), §DUAL-PROCESS-MEMORY (System 1/System 2 gating), §EPISODIC-RECONSTRUCTION (master-assistant architecture), §MEMORY-CYCLE (heartbeat integration), §ADAPTIVE-MEMORY (structure-selector and FluxMem), §EVOLUTIONARY-MEMORY (PRISM subsystem), and §DREAM-CYCLE (complete with formal pre/post-conditions, phase specifications, and all twelve conformance tests).
 
----BEGIN AGENT-SEED v15.0 PART 4 OF 6---
+---BEGIN AGENT-SEED v0.1.0.0 PART 4 OF 6---
 
 ╔══════════════════════════════════════════════════════════════════════╗
 ║ §15 — THE HEARTBEAT — Autonomous Execution Pulse ║
@@ -3322,7 +3322,7 @@ facts, vector clocks, scope enforcement, and CRDT‑backed replication.
 Paredes García (2026) provides the formal state‑transition framework,
 identifying three base on‑chain coordination patterns (State‑Flag,
 Event‑Signal, Threshold‑Trigger) plus a Commit‑Reveal sequencing overlay.
-ASL v15 instantiates all three patterns at the language level.
+ASL v0.1.0 instantiates all three patterns at the language level.
 
 8.1 Fact Schema
 
@@ -3623,7 +3623,7 @@ The A2A (Agent‑to‑Agent) Protocol v1.0 (March 12, 2026) is the first
 open standard for agent‑to‑agent communication, now governed by the Linux
 Foundation’s Agentic AI Foundation. Every ASL agent with federation: true or mesh: true MUST publish a valid A2A Agent Card.
 
-The normative source of truth is specification/a2a.proto. ASL v15
+The normative source of truth is specification/a2a.proto. ASL v0.1.0
 implements the full A2A v1.0 protocol natively: all eleven RPC methods,
 the nine‑state task state machine, Agent Card signature verification
 via JWS + JCS, and all three protocol bindings (JSON‑RPC, gRPC, REST).
@@ -3764,7 +3764,7 @@ A2A-09:  Agent Card signature verification: modified card is rejected
 A2A-10:  Paginated ListTasks returns correct cursor for result sets
          exceeding single‑page limit.
 ╔══════════════════════════════════════════════════════════════════════╗
-║ §19— MCP BINDING — Native Model Context Protocol (v15) ║
+║ §19— MCP BINDING — Native Model Context Protocol (v0.1.0) ║
 ║ Grounded in: MCP Specification 2025‑11‑25; MCPS IETF Draft ║
 ║ (Sharif 2026); MCPSHIELD (Acharya 2026, ║
 ║ arXiv:2604.05969); MCPShield (Zhou 2026, ║
@@ -3776,7 +3776,7 @@ A2A-10:  Paginated ListTasks returns correct cursor for result sets
 The Model Context Protocol (MCP) is the de facto standard for tool
 integration with LLM‑powered agents, with over 97 million monthly SDK
 downloads, 177,000+ registered tools, and governance by the Linux
-Foundation’s Agentic AI Foundation. ASL v15 provides a native MCP
+Foundation’s Agentic AI Foundation. ASL v0.1.0 provides a native MCP
 binding implementing the MCP Specification 2025‑11‑25 with cryptographic
 security via MCPS (IETF draft‑sharif‑mcps‑secure‑mcp‑00) and defense‑
 in‑depth via MCPSHIELD’s integrated architecture (91% theoretical
@@ -3794,8 +3794,8 @@ mcp_server_def ::= "mcp_server" identifier "{"
     ["," "prompts"   ":" "[" mcp_prompt_entry
                               {"," mcp_prompt_entry}   "]"]
     ["," "auth"      ":" mcp_auth_spec]
-    ["," "mcps"      ":" mcps_config]          -- NEW v15: MCPS integration
-    ["," "security"  ":" mcpshield_config]     -- NEW v15: MCPSHIELD policies
+    ["," "mcps"      ":" mcps_config]          -- NEW v0.1.0: MCPS integration
+    ["," "security"  ":" mcpshield_config]     -- NEW v0.1.0: MCPSHIELD policies
     "," "version"   ":" string_literal
 "}"
 
@@ -3871,7 +3871,7 @@ L4	L3 + OCSP revocation	All messages	Nonce + transcript binding	Real‑time
 11.3 MCPSHIELD Defense‑in‑Depth (Acharya 2026)
 
 MCPSHIELD’s integrated architecture achieves 91% theoretical coverage
-of the 23‑attack‑vector threat landscape. ASL v15 implements four
+of the 23‑attack‑vector threat landscape. ASL v0.1.0 implements four
 layers:
 
 text
@@ -3972,7 +3972,7 @@ MCP-11:  MCPShield cognition: known‑malicious tool detected during probe
 MCP-12:  Audit log entry recorded for every tool call with provenance
          trace; Merkle‑verifiable end‑to‑end.
 ╔══════════════════════════════════════════════════════════════════════╗
-║ §20 — MULTI‑ANCHOR IDENTITY — Resilient Self (v15) ║
+║ §20 — MULTI‑ANCHOR IDENTITY — Resilient Self (v0.1.0) ║
 ║ Grounded in: Menon 2026 (Persistent Identity, arXiv:2604.09588); ║
 ║ ASI Agent Drift (arXiv:2601.04170) ║
 ╚══════════════════════════════════════════════════════════════════════╝
@@ -3982,7 +3982,7 @@ MCP-12:  Audit log entry recorded for every tool call with provenance
 AI agent identity is distributed across multiple memory systems—not
 centralised in a single store. Human identity survives damage because
 it is distributed across episodic, procedural, emotional, and embodied
-systems (Menon 2026). ASL v15 applies the same principle: six anchors,
+systems (Menon 2026). ASL v0.1.0 applies the same principle: six anchors,
 each resilient, each independently recoverable.
 
 12.1 Identity Anchor Declaration
@@ -4044,7 +4044,7 @@ identity_anchors: {
 12.3 Drift Detection
 
 The Agent Drift framework (ASI, arXiv:2601.04170) measures behavioural
-consistency across 12 dimensions. ASL v15 integrates drift detection
+consistency across 12 dimensions. ASL v0.1.0 integrates drift detection
 at each heartbeat’s update_memory phase:
 
 text
@@ -4191,10 +4191,10 @@ CID-06:  AgentDID challenge‑response: stale capability hash detected;
 CID-07:  zkVM proof verification: tampered binary detected at load
          time; agent fails to boot with BootIntegrityFailure.
 CID-08:  Delegation depth exceeding configured maximum rejected.
----END AGENT-SEED v15.0 PART 4 OF 6---
+---END AGENT-SEED v0.1.0.0 PART 4 OF 6---
 Part 4 complete. Seven sections: §7 Heartbeat (OODA loop with governance binding per McCann 2026), §8 Federation & Stigmergy (typed facts, three coordination patterns per Paredes García 2026, CRDT layer mapping, HLC, anti‑entropy), §9 Cognitive Mesh (MMP/CAT7/SVAF per Xu 2026), §10 A2A Binding v1.0 (all eleven RPC methods, nine‑state task machine, JWS Agent Card signatures), §11 MCP Binding (2025‑11‑25 spec + MCPS IETF draft + MCPSHIELD defense‑in‑depth + MCPShield cognition layer), §12 Multi‑Anchor Identity (six anchors, drift detection per ASI), §13 Cryptographic Identity (BAID zkVM + Zhou X.509 capability‑bound certs + AgentDID challenge‑response). 48 conformance tests total across seven test categories.
 
----BEGIN AGENT-SEED v15.0 PART 5 OF 6---
+---BEGIN AGENT-SEED v0.1.0.0 PART 5 OF 6---
 
 ╔══════════════════════════════════════════════════════════════════════╗
 ║ §22 — CAPABILITY TOKENS — Capability‑Based Security Model ║
@@ -4206,7 +4206,7 @@ Part 4 complete. Seven sections: §7 Heartbeat (OODA loop with governance bindin
 §CAPABILITY-TOKENS
 
 Capabilities are unforgeable, VM‑managed tokens that authorise specific
-effects. ASL v15 replaces the v14 declarative safety‑contract model with a
+effects. ASL v0.1.0 replaces the v14 declarative safety‑contract model with a
 capability‑based security model drawn from Spera’s non‑compositionality
 theorem, the Datalog‑equivalent hypergraph closure framework, and the Turn
 language’s opaque‑handle design. No effect may fire without a capability
@@ -4296,7 +4296,7 @@ them. Any attempt to use a revoked token surfaces Effect:: CapabilityRevoked.
 
 Spera (2026, Theorem 9.2) proves: two agents, each individually safe, can
 when combined collectively reach a forbidden goal through an emergent
-conjunctive dependency. ASL v15 addresses this via hypergraph closure
+conjunctive dependency. ASL v0.1.0 addresses this via hypergraph closure
 checking, now supported by a Datalog back‑end that provides efficient
 incremental maintenance and a decision procedure for audit‑surface
 containment.
@@ -4450,7 +4450,7 @@ TRS-07:  Exponential delegation decay: trust at depth 5 is ≤ 0.082 × 
 
 §SESSION-PROTOCOLS
 
-Inter‑agent communication in ASL v15 is governed by context‑free session
+Inter‑agent communication in ASL v0.1.0 is governed by context‑free session
 types with a priority‑based deadlock‑freedom guarantee. This extends the
 mesh and A2A primitives from Parts 4 with a compile‑time safety net:
 well‑typed agents can never deadlock or diverge from their declared
@@ -4552,7 +4552,7 @@ SES-06:  Recursive session types with rec correctly project and preserve
 §TEMPORAL-CONTRACTS
 
 Safety properties that depend on the ordering of events cannot be
-expressed by static allow/forbid lists. ASL v15 introduces temporal
+expressed by static allow/forbid lists. ASL v0.1.0 introduces temporal
 contracts—statements in Linear Temporal Logic (LTL) enforced at runtime by
 an embedded SMT solver. Agent‑C demonstrated that this approach achieves
 100% conformance with 0% harm while improving task utility. AgentVerify
@@ -4631,7 +4631,7 @@ so verification resumes after suspend/resume.
 
 25.4 Past‑Time Operators
 
-ASL v15 supports past‑time LTL operators O (once) and S (since),
+ASL v0.1.0 supports past‑time LTL operators O (once) and S (since),
 essential for expressing temporal constraints over finite traces:
 
 • O(p) — p was true at some point in the past.
@@ -4728,7 +4728,7 @@ Nayebi proves that deciding whether an arbitrary post‑hack agent will
 ever violate corrigibility is undecidable (reduction to the halting
 problem). However, a finite‑horizon “decidable island” is carved out
 where safety can be certified in randomised polynomial time and verified
-with privacy‑preserving, constant‑round zero‑knowledge proofs. ASL v15
+with privacy‑preserving, constant‑round zero‑knowledge proofs. ASL v0.1.0
 requires all amendments to be certified within this decidable island:
 finite‑horizon simulation with bounded recursion depth.
 
@@ -4795,7 +4795,7 @@ COR-07:  Decidable‑island certification: amendment simulation completes
 
 §SAFETY-CONTRACTS
 
-ASL v15 safety contracts unify four formal frameworks into a coherent,
+ASL v0.1.0 safety contracts unify four formal frameworks into a coherent,
 layered enforcement architecture. Each framework addresses a different
 aspect of agent safety, and they compose harmoniously: ABC provides the
 contract skeleton, AgentSpec fills it with declarative rules, VeriGuard
@@ -5021,7 +5021,7 @@ vera_properties ::= "{"
 "}"
 The VERA maturity runtime requires agents to earn autonomy through
 cryptographic proof rather than calendar time. Each pillar maps to a
-specific ASL v15 subsystem: Pillar 1 to §21 (Cryptographic Identity),
+specific ASL v0.1.0 subsystem: Pillar 1 to §21 (Cryptographic Identity),
 Pillar 2 to §22 (Capability Tokens), Pillar 3 to §16 (Provenance Chain),
 Pillar 4 to this section, and Pillar 5 to §25 (Conformance Suite).
 
@@ -5066,11 +5066,11 @@ GRD-08:  AEGIS2.0 hazard category "Deception" correctly mapped to AgentDoG
          failure_mode = over_trust.
 GRD-09:  Maturity runtime: agent with evidence score below threshold
          cannot escalate to higher autonomy level.
----END AGENT-SEED v15.0 PART 5 OF 6---
+---END AGENT-SEED v0.1.0.0 PART 5 OF 6---
 
 Part 5 complete. Seven normative sections: §22 Capability Tokens (Spera hypergraph closure + Datalog equivalence), §23 Trust Lattice (CIF Trust Calculus, Defense Composition Algebra, Adversary Hierarchy), §24 Session Protocols (Mordido & Pérez priority‑based deadlock freedom), §25 Temporal Contracts (Agent‑C SMT + AgentVerify 23 templates + LTLfMT PSPACE trace‑checking + StepShield metrics), §26 Corrigibility Layer (Nayebi five‑head utility, decidable island, control meter), §27 Safety Contracts (ABC + AgentSpec + VeriGuard + SEVerA/FGGM), §28 Guardrails (AgentDoG 3D taxonomy + StepShield temporal metrics + VERA pillars + AEGIS2.0 categories). 48 conformance tests across seven categories.
 
----BEGIN AGENT-SEED v15.0 PART 6 OF 6---
+---BEGIN AGENT-SEED v0.1.0.0 PART 6 OF 6---
 
 ╔══════════════════════════════════════════════════════════════════════╗
 ║ §29 — SELF‑EVOLUTION — Verified Synthesis of Evolving Agents ║
@@ -5081,7 +5081,7 @@ Part 5 complete. Seven normative sections: §22 Capability Tokens (Spera hyper
 §SELF‑EVOLUTION
 
 Self‑evolution is the mechanism by which an agent modifies its own code
-under strict formal guarantees. ASL v15 draws its evolution model from
+under strict formal guarantees. ASL v0.1.0 draws its evolution model from
 SEVerA (Banerjee 2026)—the first framework to provide verified synthesis of
 self‑evolving agents—and combines it with the amendment pipeline, rollback
 infrastructure, and corrigibility gate already specified in Parts 3 and 5.
@@ -5250,7 +5250,7 @@ EVO-09:  Flip‑centered gating: pass‑to‑fail regression blocks amendment
 
 §RL‑TRAINING
 
-Reinforcement learning is a first‑class language construct in ASL v15.
+Reinforcement learning is a first‑class language construct in ASL v0.1.0.
 Agents can train their memory operations, routing policies, and behavioural
 strategies using GRPO (Group Relative Policy Optimisation) or PPO
 (Proximal Policy Optimisation) within the evolution approval framework.
@@ -5385,7 +5385,7 @@ RL-07:  Convergence guard: step size exceeding threshold auto‑reduced;
 
 §PROVENANCE‑CHAIN
 
-Every inference call, memory write, effect, and decision in ASL v15 is
+Every inference call, memory write, effect, and decision in ASL v0.1.0 is
 automatically tagged with a provenance record that forms a cryptographically
 verifiable audit trail. The architecture is grounded in three complementary
 standards: Context Lineage's append‑only Merkle trees modeled after
@@ -5532,7 +5532,7 @@ PRV-08:  Federated proof server attestation: inclusion proof and
 
 §GRAMMAR‑STRATIFICATION
 
-ASL v15 defines four grammar strata. Each stratum is a proper subset of
+ASL v0.1.0 defines four grammar strata. Each stratum is a proper subset of
 the stratum above it. This design is informed by CRANE's theoretical
 analysis: constraining LLM outputs to very restrictive grammars that only
 allow syntactically valid final answers reduces reasoning capabilities. The
@@ -5628,7 +5628,7 @@ Processing Unit encapsulated by a deterministic, neuro‑symbolic kernel.
 Its Semantic ISA reifies probabilistic messages into discrete instructions,
 enabling the kernel to maintain a Security Context Registry and construct an
 Instruction Dependency Graph at runtime with active taint propagation based
-on the data‑flow pedigree of each reasoning node. ASL v15's
+on the data‑flow pedigree of each reasoning node. ASL v0.1.0's
 VM (seedvm‑5.0) adopts this semantic ISA model, mapping every language
 construct to a governed instruction.
 
@@ -5723,7 +5723,7 @@ ISA-05:  Copy‑and‑patch JIT: first‑tick latency ≤ 50ms on reference
 ISA-06:  Ed25519 signature over .aslb binary verifies; tampered binary
          rejected with BootIntegrityFailure at VM load time.
 ╔══════════════════════════════════════════════════════════════════════╗
-║ §34 — STANDARD LIBRARY — Complete Module Catalogue (v15) ║
+║ §34 — STANDARD LIBRARY — Complete Module Catalogue (v0.1.0) ║
 ╚══════════════════════════════════════════════════════════════════════╝
 
 §STANDARD‑LIBRARY
@@ -5743,7 +5743,7 @@ seed::identity, seed::governance, seed::coherency, seed::episodic
 seed::memory_cycle, seed::adaptive_memory, seed::evolutionary_memory
 seed::evolution, seed::training, seed::prompts, seed::contracts
 seed::guardrails, seed::think, seed::route
-# v15 standard library additions
+# v0.1.0 standard library additions
 seed::uncertain          # Uncertain<T> monad: new, pure, bind, map,
                          # observe, gate (U1–U6 API)
 seed::capability         # CapabilityToken: grant, attenuate, delegate,
@@ -5824,7 +5824,7 @@ seed::conformance        # conformance test runner, level verification
 
 §CONFORMANCE
 
-A conforming ASL v15 runtime (seedvm‑5.0+) MUST correctly execute all
+A conforming ASL v0.1.0 runtime (seedvm‑5.0+) MUST correctly execute all
 tests in the ASL Conformance Suite. The suite is aligned with ISO/IEC
 TS 42119‑2:2025, which defines how AI systems should be tested following
 a risk‑based approach, and ISO/IEC 42001 AIMS, which aligns
@@ -5881,7 +5881,7 @@ conformance_levels {
          ISO/IEC TS 42119‑2:2025 test lifecycle documentation,
          SCITT verifier compatibility]
 }
-A runtime advertising "ASL v15 Level N compliant" must pass all tests in
+A runtime advertising "ASL v0.1.0 Level N compliant" must pass all tests in
 level N and all lower levels.
 
 35.3 Conformance Suite Conformance Tests
@@ -5965,7 +5965,7 @@ seed‑provenance   = "1.0"
 [conformance]
 suite   = "ASL‑CONF‑15"
 command = "seed test --conformance --level 5"
----END AGENT-SEED v15.0 PART 6 OF 6---
+---END AGENT-SEED v0.1.0.0 PART 6 OF 6---
 
 Part 6 complete. Eight normative sections: §29 Self‑Evolution (SEVerA
 FGGM verified synthesis, three‑stage Search→Verify→Learn pipeline, AgentDevel
@@ -5981,11 +5981,11 @@ Library (complete module catalogue with 80+ modules), §35 Conformance Suite
 (22 categories, five levels, ISO/IEC TS 42119‑2:2025 alignment), and §36
 Package Manifest.
 
----BEGIN AGENT-SEED v15.0 ADDENDUM---
+---BEGIN AGENT-SEED v0.1.0.0 ADDENDUM---
 @AGENT-SEED/15.0.1
 
 ╔══════════════════════════════════════════════════════════════════════╗
-║ AGENT-SEED v15.0.1 — Addendum ║
+║ AGENT-SEED v0.1.0.0.1 — Addendum ║
 ║ Resolving six identified specification gaps against current ║
 ║ research and addressing the external expert assessment ║
 ╚══════════════════════════════════════════════════════════════════════╝
@@ -6049,7 +6049,7 @@ patch-summary:
 
 §TAINT-TYPES
 
-ASL v15 has capability tokens (§22) that prevent unauthorized effects, and
+ASL v0.1.0 has capability tokens (§22) that prevent unauthorized effects, and
 provenance chains (§31) that trace data lineage. What it does not have is
 a type-level mechanism to track that a value originated from an untrusted
 external source—a taint—and to prevent that taint from silently flowing
@@ -6150,7 +6150,7 @@ TNT-06:  sanitize with human::review blocks until principal signs off;
 
 §GRAMMAR-EXPORT
 
-ASL v15 §32 defines four grammar strata with S0 designed for LLM
+ASL v0.1.0 §32 defines four grammar strata with S0 designed for LLM
 generation. What is missing is a machine-readable grammar export that
 enables any inference provider to enforce S0 syntax as a hard output
 constraint during constrained decoding.
@@ -6227,7 +6227,7 @@ GEX-04:  Grammar export count matches the published S0 production count
 
 §CONTEXT-BUDGET
 
-ASL v15 has context_bounded and max_tokens as keywords (§1.3) inherited
+ASL v0.1.0 has context_bounded and max_tokens as keywords (§1.3) inherited
 from v7/v13, and the tripartite context architecture (§5) tracks P0/P1/P2
 token usage at runtime. What is missing is a compile-time guarantee—an
 agent declaration that statically bounds the maximum number of tokens this
@@ -6305,7 +6305,7 @@ CTX-05:  Budget accounting includes tool output schemas in estimation.
 
 §AGENT-CONTRACTS
 
-ASL v15 §27 defines safety contracts (ABC, AgentSpec, VeriGuard, FGGM) for
+ASL v0.1.0 §27 defines safety contracts (ABC, AgentSpec, VeriGuard, FGGM) for
 behavioural constraints. What is missing is a formal framework for
 resource governance—how much an agent may consume, for how long, under what
 budget, and with what success criteria. Agent Contracts (Ye & Tan 2026)
@@ -6399,7 +6399,7 @@ AGC-05:  Quality threshold not met: contract completed with degraded status;
 
 §TEE-GOVERNANCE
 
-ASL v15 §33 (ISA) mentions TEE attestation as an available attestation
+ASL v0.1.0 §33 (ISA) mentions TEE attestation as an available attestation
 method and the IETF SPICE Truth Stack incorporates TEE quotes for
 inference-chain verification. The governance model relies on software‑
 enforced capability tokens and trust lattices. Two new results suggest
@@ -6462,7 +6462,7 @@ TEE-04:  AgenTEE-style multi-cVM deployment: agent runtime, inference,
 
 §TRAJECTORY-AUDIT
 
-ASL v15 §31 (Provenance Chain) provides a cryptographically verifiable
+ASL v0.1.0 §31 (Provenance Chain) provides a cryptographically verifiable
 audit trail. §25 (Temporal Contracts) enforces LTL constraints
 prospectively via SMT. What is missing is retrospective verification: given
 a completed agent trajectory (a provenance chain segment) and a
@@ -6543,7 +6543,7 @@ edition = "2029"
 
 [isa-extensions]
 
-All v15.0.0 extensions remain required, plus:
+All v0.1.0.0.0 extensions remain required, plus:
 "+taint-types", "+agent-contracts"
 
 [features]
@@ -6565,7 +6565,7 @@ seed-tee = "1.0" # NEW
 suite = "ASL-CONF-15"
 command = "seed test --conformance --level 4"
 
----END AGENT-SEED v15.0 ADDENDUM---
+---END AGENT-SEED v0.1.0.0 ADDENDUM---
 
 text
 
@@ -6581,7 +6581,7 @@ external assessment and fresh literature review:
 | 15.5 §TEE-GOVERNANCE | Software-only governance; no hardware root of trust | AgenTEE (Abdollahi 2026), Citadel Protocol (Ezell 2026) |
 | 15.6 §TRAJECTORY-AUDIT | Passive audit log; no retrospective formal verification | FormalJudge (Zhou 2026), Alignment Contracts (David 2026) |
 
-AGENT-SEED v15.1 — CORE SEMANTICS COMPLETION ADDENDUM
+AGENT-SEED v0.1.0.1 — CORE SEMANTICS COMPLETION ADDENDUM
 @AGENT-SEED/15.1.0
 status: normative
 supersedes: 15.0.1 (semantic layer)
@@ -6878,7 +6878,7 @@ After this addendum, ASL is:
 
 A formally defined, effect-typed, resource-bounded, causally-safe execution model for non-deterministic agent systems.
 
-ADDENDUM TO THE LANGUAGE SPECIFICATION (AgentSeedLanguage_V15.md)
+ADDENDUM TO THE LANGUAGE SPECIFICATION (AgentSeedLanguage_v0.1.0.md)
 text
 @AGENT-SEED/15.2.0
 status: normative
