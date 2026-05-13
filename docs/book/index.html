@@ -705,22 +705,635 @@ and decay applied.</p>
 }</code></pre>
 
 </div></section>
-      <section id="ch3"><h3 class="chapter-title">3. A Tour of the Language</h3><div class="placeholder">[Content – quick tour of expressions, functions, agents, effects.]</div></section>
+<section id="ch3">
+  <h3 class="chapter-title">3. A Tour of the Language</h3>
+
+  <div class="placeholder">
+    <p>
+      This section provides a rapid walkthrough of ASL’s core constructs.
+      Each feature is expanded in detail later in the manual, but after
+      reading this chapter you will be able to read and write simple
+      programs and understand the language’s fundamental philosophy.
+    </p>
+
+    <!-- ── Variables and simple expressions ── -->
+    <h4>3.1 Variables and Simple Expressions</h4>
+    <p>
+      Variables are introduced with <code>let</code>.  Type annotations
+      are optional when the compiler can infer the type from the
+      initialiser.
+    </p>
+
+    <pre><code>fn simple_math() -&gt; i32 {
+    let x = 42;                // type i32 inferred
+    let y: i32 = 7;            // explicit type annotation
+    x + y                      // last expression is the return value
+}</code></pre>
+
+    <p>
+      ASL supports the usual arithmetic, comparison, and logical
+      operators with standard mathematical precedence.  A complete
+      precedence table is in Appendix B.
+    </p>
+
+    <table>
+      <thead><tr><th>Operation</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td>Arithmetic</td><td><code>a + b</code>, <code>c * d</code>, <code>e % f</code></td></tr>
+        <tr><td>Comparison</td><td><code>x == y</code>, <code>p &lt; q</code></td></tr>
+        <tr><td>Logical short‑circuit</td><td><code>ok &amp;&amp; ready</code></td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── Control flow ── -->
+    <h4>3.2 Control Flow</h4>
+    <p>
+      Conditionals are <strong>expressions</strong> – they produce a value:
+    </p>
+
+    <pre><code>fn classify(n: i32) -&gt; string {
+    if n &gt; 0 {
+        "positive"
+    } else if n == 0 {
+        "zero"
+    } else {
+        "negative"
+    }
+}</code></pre>
+
+    <p>
+      Loops include <code>loop</code>, <code>while</code>, and
+      <code>for</code>:
+    </p>
+
+    <pre><code>fn countdown(mut n: i32) {
+    while n &gt; 0 {
+        print(n);
+        n = n - 1;
+    }
+}</code></pre>
+
+    <!-- ── Functions and agents ── -->
+    <h4>3.3 Functions and Agents</h4>
+    <p>
+      A <strong>function</strong> is introduced with <code>fn</code>:
+    </p>
+
+    <pre><code>fn greet(name: string) -&gt; string {
+    "Hello, " ++ name ++ "!"
+}</code></pre>
+
+    <p>
+      An <strong>agent</strong> is introduced with <code>agent</code>.
+      It may contain fields, methods, lifecycle handlers, and
+      configuration clauses:
+    </p>
+
+    <pre><code>agent greeter {
+    name: string;                   // field
+
+    fn greet(self) -&gt; string {     // method
+        "Hello, " ++ self.name ++ "!"
+    }
+}</code></pre>
+
+    <p>
+      Functions and agents may be declared <code>pub</code> to make them
+      visible outside their module.  The complete agent declaration
+      syntax is described in Chapter 15.
+    </p>
+
+    <!-- ── Types at a glance ── -->
+    <h4>3.4 Types at a Glance</h4>
+    <p>
+      ASL is <strong>statically typed</strong> with full Hindley‑Milner
+      inference.  The built‑in primitive types are:
+    </p>
+
+    <table>
+      <thead><tr><th>Category</th><th>Types</th></tr></thead>
+      <tbody>
+        <tr><td>Booleans</td><td><code>bool</code></td></tr>
+        <tr><td>Signed integers</td><td><code>i8</code>, <code>i16</code>, <code>i32</code>, <code>i64</code>, <code>i128</code></td></tr>
+        <tr><td>Unsigned integers</td><td><code>u8</code>, <code>u16</code>, <code>u32</code>, <code>u64</code>, <code>u128</code></td></tr>
+        <tr><td>Floating‑point</td><td><code>f32</code>, <code>f64</code></td></tr>
+        <tr><td>Text</td><td><code>char</code>, <code>string</code></td></tr>
+        <tr><td>Binary</td><td><code>Bytes</code></td></tr>
+      </tbody>
+    </table>
+
+    <p>
+      Compound types include arrays, tuples, structs, enums, references,
+      and pointers.  ASL also provides a rich set of <strong>agentic
+      types</strong>: <code>Uncertain&lt;T&gt;</code> (probability‑wrapped
+      values), <code>CapabilityToken</code>, <code>ProvenanceTag</code>,
+      <code>DID</code>, and many others.  These are covered in depth in
+      Part IV.
+    </p>
+
+    <!-- ── Effects and the discharge/perform pattern ── -->
+    <h4>3.5 Effects and the <code>discharge</code>/<code>perform</code> Pattern</h4>
+    <p>
+      Side‑effecting operations – network calls, memory writes, LLM
+      inference – return a <code>Computation&lt;T,&thinsp;&epsilon;&gt;</code>
+      value.  To extract the inner <code>T</code>, you <strong>must</strong>
+      enclose the operation in a <code>discharge</code> block that
+      declares explicit thresholds for confidence, taint, budget, and
+      required capabilities.
+    </p>
+
+    <pre><code>fn research(query: string) -&gt; Uncertain&lt;Answer&gt; ! {Inference, Network} {
+    let raw = infer&lt;Answer&gt;(
+        model: route::select(Complexity::Moderate),
+        prompt: build_prompt(query)
+    );
+
+    discharge raw with {
+        confidence:     0.85,
+        taint:           0.1,
+        budget:          500,
+        capabilities:   [cap::inference]
+    } {
+        // Inside this block, `raw` is of type `Answer`,
+        // not `Computation&lt;Answer, …&gt;`.
+        raw
+    }
+}</code></pre>
+
+    <p>
+      If any threshold is not met, a <code>DischargeFailure</code> effect
+      is raised and the block is not entered.  The compiler rejects any
+      <code>perform</code> that is not lexically inside a
+      <code>discharge</code> block.  This is a compile‑time guarantee at
+      stratum S1 and above.
+    </p>
+
+    <p>
+      This pattern is the foundation of all safe, auditable agentic
+      behaviour in ASL.  It ensures that uncertainty is never silently
+      discarded, that tainted data cannot flow into capability‑exercising
+      code, and that every effect is authorised by an explicit capability
+      token.
+    </p>
+
+    <!-- ── Where next ── -->
+    <h4>3.6 Where to Go Next</h4>
+    <p>
+      The remainder of this manual is organised as follows:
+    </p>
+
+    <ul>
+      <li><strong>Parts II–III</strong> define the complete lexical and syntactic grammar.</li>
+      <li><strong>Part IV</strong> formalises the type system, ownership, effects, and the <code>Uncertain&lt;T&gt;</code> axioms.</li>
+      <li><strong>Part V</strong> details the memory hierarchy and governance.</li>
+      <li><strong>Parts VI‑XIV</strong> cover the agent lifecycle (heartbeat, dream), security (capabilities, taint, trust),
+          confidence and inference, temporal contracts, corrigibility, multi‑agent protocols, identity, provenance,
+          self‑evolution, and training.</li>
+      <li><strong>Parts XV‑XIX</strong> describe the virtual ISA, standard library, and developer tooling.</li>
+      <li><strong>Part XX</strong> provides conformance and testing information.</li>
+      <li><strong>Appendices</strong> present the complete grammar, operator precedence, type hierarchy, and other reference material.</li>
+    </ul>
+  </div>
+</section>
     </section>
 
-    <!-- PART II -->
-    <section id="part-II" class="book-section">
-      <h2 class="part-title">Part II – Lexical Grammar</h2>
-      <section id="ch4"><h3 class="chapter-title">4. Source Text</h3><div class="placeholder">[Content]</div></section>
-      <section id="ch5"><h3 class="chapter-title">5. Whitespace and Comments</h3><div class="placeholder">[Content]</div></section>
-      <section id="ch6"><h3 class="chapter-title">6. Identifiers</h3><div class="placeholder">[Content]</div></section>
-      <section id="ch7"><h3 class="chapter-title">7. Keywords</h3><div class="placeholder">[Content – S0, S1, S2, S3 lists.]</div></section>
-      <section id="ch8"><h3 class="chapter-title">8. Literals</h3><div class="placeholder">[Content]</div></section>
-      <section id="ch9"><h3 class="chapter-title">9. Operators</h3><div class="placeholder">[Content]</div></section>
-      <section id="ch10"><h3 class="chapter-title">10. Delimiters</h3><div class="placeholder">[Content]</div></section>
-      <section id="ch11"><h3 class="chapter-title">11. Token Trees</h3><div class="placeholder">[Content]</div></section>
-      <section id="ch12"><h3 class="chapter-title">12. Lexical Disambiguation Rules</h3><div class="placeholder">[Content]</div></section>
-    </section>
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- PART II – LEXICAL GRAMMAR -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+
+<section id="part-II" class="book-section">
+  <h2 class="part-title">Part II – Lexical Grammar</h2>
+
+  <!-- ── Chapter 4: Source Text ── -->
+  <section id="ch4">
+    <h3 class="chapter-title">4. Source Text</h3>
+
+    <div class="placeholder">
+      <p>
+        ASL source files are encoded in <strong>UTF‑8</strong> (Unicode
+        version 16.0).  The compiler treats the byte stream as
+        characters; non‑UTF‑8 sequences produce a lexical error at the
+        offending byte.
+      </p>
+
+      <table>
+        <thead><tr><th>Extension</th><th>Kind</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>.seed</code></td><td>Source</td><td>Primary human‑written ASL program text</td></tr>
+          <tr><td><code>.asl</code></td><td>Text IR</td><td>Human‑readable S‑expression form (equivalent to <code>.aslt</code>)</td></tr>
+          <tr><td><code>.aslb</code></td><td>Binary IR</td><td>Compiled bytecode module executed by <code>seedvm</code></td></tr>
+          <tr><td><code>.aslt</code></td><td>Text IR</td><td>Textual assembly (WAT‑equivalent) for debugging</td></tr>
+        </tbody>
+      </table>
+
+      <p>
+        The <code>.seed</code> extension is the principal format for
+        development; the others are compilation artifacts.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Chapter 5: Whitespace and Comments ── -->
+  <section id="ch5">
+    <h3 class="chapter-title">5. Whitespace and Comments</h3>
+
+    <div class="placeholder">
+      <h4>5.1 Whitespace Characters</h4>
+      <p>
+        Whitespace is any sequence of space (U+0020), horizontal tab
+        (U+0009), carriage return (U+000D), and line feed (U+000A).
+        Whitespace separates tokens but carries no semantic meaning.
+      </p>
+
+      <h4>5.2 Line Comments</h4>
+      <p>
+        A line comment begins with <code>//</code> and runs to the end
+        of the line:
+      </p>
+      <pre><code>let x = 1; // this is a comment</code></pre>
+
+      <h4>5.3 Block Comments</h4>
+      <p>
+        A block comment starts with <code>/*</code> and ends with
+        <code>*/</code>.  It may span multiple lines and does
+        <strong>not</strong> nest.
+      </p>
+      <pre><code>/*
+   multi‑line
+   comment
+*/</code></pre>
+
+      <h4>5.4 Documentation Comments</h4>
+      <p>
+        ASL supports two forms of documentation comments:
+      </p>
+      <ul>
+        <li><code>///</code> – documents the <strong>following</strong> item.</li>
+        <li><code>//!</code> – documents the <strong>enclosing</strong> item
+          (module or agent).</li>
+      </ul>
+      <pre><code>/// A greeting agent.
+agent hello { … }</code></pre>
+      <p>
+        These comments are extracted by <code>seedc doc</code> to
+        generate API documentation.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Chapter 6: Identifiers ── -->
+  <section id="ch6">
+    <h3 class="chapter-title">6. Identifiers</h3>
+
+    <div class="placeholder">
+      <p>Identifiers follow these rules:</p>
+
+      <table>
+        <thead><tr><th>Kind</th><th>Syntax</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Ordinary</td><td><code>[a-zA-Z_][a-zA-Z0-9_]*</code></td><td><code>my_agent_1</code></td></tr>
+          <tr><td>Raw</td><td><code>r#</code> followed by an ordinary identifier</td><td><code>r#type</code> (used when a keyword must serve as an identifier)</td></tr>
+          <tr><td>Placeholder</td><td><code>_</code></td><td>Ignored value in patterns and let bindings</td></tr>
+        </tbody>
+      </table>
+
+      <p>
+        Identifiers are case‑sensitive.  The raw identifier prefix
+        <code>r#</code> is stripped during lexing; the identifier is
+        then the keyword itself.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Chapter 7: Keywords ── -->
+  <section id="ch7">
+    <h3 class="chapter-title">7. Keywords</h3>
+
+    <div class="placeholder">
+      <p>
+        Keywords are reserved in all strata unless noted otherwise.  The
+        compiler rejects any keyword that belongs to a higher stratum
+        than the compilation unit’s declared stratum.
+      </p>
+
+      <h4>7.1 S0 – Core (available in all strata)</h4>
+      <p>
+        <code>agent</code>, <code>fn</code>, <code>let</code>,
+        <code>if</code>, <code>else</code>, <code>match</code>,
+        <code>loop</code>, <code>while</code>, <code>for</code>,
+        <code>return</code>, <code>break</code>, <code>continue</code>,
+        <code>async</code>, <code>await</code>, <code>spawn</code>,
+        <code>select</code>, <code>try</code>, <code>catch</code>,
+        <code>throw</code>, <code>unsafe</code>, <code>pub</code>,
+        <code>mod</code>, <code>use</code>, <code>extern</code>,
+        <code>export</code>, <code>trait</code>, <code>impl</code>,
+        <code>struct</code>, <code>enum</code>, <code>type</code>,
+        <code>self</code>, <code>mut</code>, <code>move</code>,
+        <code>borrow</code>, <code>ref</code>, <code>own</code>,
+        <code>effect</code>, <code>handler</code>, <code>perform</code>,
+        <code>resume</code>, <code>prob</code>, <code>observe</code>,
+        <code>infer</code>, <code>signal</code>, <code>react</code>,
+        <code>memo</code>, <code>ask</code>, <code>confident</code>,
+        <code>uncertain</code>, <code>interval</code>,
+        <code>derive_schema</code>, <code>cognitive</code>,
+        <code>schema</code>, <code>seed</code>, <code>seedlet</code>,
+        <code>inherit</code>, <code>compose</code>, <code>pipe</code>,
+        <code>redirect</code>, <code>discharge</code>,
+        <code>section</code>, <code>contract</code>, <code>true</code>,
+        <code>false</code>, <code>null</code>, …
+      </p>
+
+      <h4>7.2 S1 – Standard Agents</h4>
+      <p>
+        <code>heartbeat</code>, <code>dream</code>, <code>memory</code>,
+        <code>layer</code>, <code>graph</code>, <code>traverse</code>,
+        <code>consolidate</code>, <code>decay</code>,
+        <code>reinforce</code>, <code>ontology</code>, <code>rule</code>,
+        <code>ground</code>, <code>validate</code>, <code>prompt</code>,
+        <code>optimize</code>, <code>template</code>,
+        <code>reflection</code>, <code>guardrail</code>,
+        <code>monitor</code>, <code>audit</code>, <code>think</code>,
+        <code>budget</code>, <code>deep</code>, <code>exhaustive</code>,
+        <code>route</code>, <code>tier</code>, <code>slm</code>,
+        <code>frontier</code>, <code>tick</code>, <code>sleep</code>,
+        <code>decide</code>, <code>act_or_sleep</code>, <code>log</code>,
+        <code>update_memory</code>, <code>review</code>,
+        <code>resolve</code>, <code>compress</code>, <code>prune</code>,
+        <code>write_journal</code>, <code>journal</code>,
+        <code>federation</code>, <code>mesh</code>, <code>send</code>,
+        <code>recv</code>, <code>crdt</code>, <code>stigmergy</code>,
+        <code>fact</code>, <code>publish</code>, <code>subscribe</code>,
+        <code>query</code>, <code>vector_clock</code>,
+        <code>conflict</code>, <code>cat7</code>, <code>svaf</code>,
+        <code>remix</code>, <code>lineage</code>, <code>identity</code>,
+        <code>anchor</code>, <code>drift</code>,
+        <code>verify_identity</code>, <code>recover</code>,
+        <code>session</code>, <code>global_type</code>,
+        <code>projection</code>, <code>protocol</code>,
+        <code>dual</code>, <code>capability</code>, <code>cap</code>,
+        <code>grant</code>, <code>attenuate</code>,
+        <code>delegate</code>, <code>revoke</code>,
+        <code>requires</code>, <code>provenance</code>,
+        <code>prov</code>, <code>trace</code>, <code>audit_log</code>,
+        <code>merkle_proof</code>, <code>system1</code>,
+        <code>system2</code>, <code>fast</code>, <code>full</code>,
+        <code>gating</code>, <code>governance</code>,
+        <code>tri_path</code>, <code>coherency</code>,
+        <code>invalidate</code>, <code>writeback</code>,
+        <code>mesi</code>, <code>episodic</code>,
+        <code>master_agent</code>, <code>assistant_agent</code>,
+        <code>activation</code>, <code>memory_cycle</code>,
+        <code>forward_path</code>, <code>backward_path</code>,
+        <code>probe</code>, <code>adaptive</code>,
+        <code>structure_selector</code>, <code>fluxmem</code>,
+        <code>evolutionary</code>, <code>prism</code>,
+        <code>encoder</code>, <code>indexer</code>,
+        <code>retriever</code>, <code>consolidator</code>,
+        <code>pruner</code>, <code>evolver</code>,
+        <code>verifier</code>, <code>governor</code>, …
+      </p>
+
+      <h4>7.3 S2 – Advanced</h4>
+      <p>
+        <code>evolve</code>, <code>train</code>, <code>policy</code>,
+        <code>reward</code>, <code>curriculum</code>,
+        <code>simulate</code>, <code>rollback</code>, <code>vote</code>,
+        <code>approve</code>, <code>temporal</code>, <code>ltl</code>,
+        <code>smt</code>, <code>always</code>, <code>eventually</code>,
+        <code>next</code>, <code>until</code>, <code>once</code>,
+        <code>since</code>, <code>trust</code>, <code>lattice</code>,
+        <code>meet</code>, <code>join</code>, <code>untrusted</code>,
+        <code>verified</code>, <code>trusted</code>,
+        <code>system_core</code>, …
+      </p>
+
+      <h4>7.4 S3 – Kernel</h4>
+      <p>
+        <code>corrigible</code>, <code>corrigibility</code>,
+        <code>deference</code>, <code>switch_preservation</code>,
+        <code>truthfulness</code>, <code>low_impact</code>,
+        <code>dead_switch</code>, <code>safe_park</code>,
+        <code>zkvm</code>, <code>did</code>, <code>vc</code>,
+        <code>paseto</code>, <code>attestation</code>,
+        <code>delegation_token</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Chapter 8: Literals ── -->
+  <section id="ch8">
+    <h3 class="chapter-title">8. Literals</h3>
+
+    <div class="placeholder">
+      <h4>8.1 Integer Literals</h4>
+      <p>
+        Decimal, hexadecimal (<code>0x</code>), octal (<code>0o</code>), and
+        binary (<code>0b</code>).  Underscores may be used as separators.
+        Examples: <code>42</code>, <code>0xFF</code>, <code>0o77</code>,
+        <code>0b1010_0101</code>.  Default type: <code>i32</code>.
+      </p>
+
+      <h4>8.2 Floating‑Point Literals</h4>
+      <p>
+        Require a decimal point and at least one digit, with optional
+        exponent.  Examples: <code>3.14</code>, <code>0.001</code>,
+        <code>2.5e-3</code>.  Default type: <code>f64</code>.
+      </p>
+
+      <h4>8.3 String Literals</h4>
+      <p>
+        Enclosed in double quotes; support common escapes
+        (<code>\n</code>, <code>\t</code>, <code>\\</code>,
+        <code>\"</code>, <code>\u{…}</code>).  Raw strings
+        <code>r"…"</code> do not process escapes.
+        Example: <code>"Hello\nWorld"</code>.
+      </p>
+
+      <h4>8.4 Character Literals</h4>
+      <p>
+        Enclosed in single quotes: <code>'A'</code>, <code>'\n'</code>.
+      </p>
+
+      <h4>8.5 Boolean and Null Literals</h4>
+      <p>
+        <code>true</code>, <code>false</code>, <code>null</code>.
+      </p>
+
+      <h4>8.6 Probability and Interval Literals</h4>
+      <p>
+        A probability literal is a float in <code>[0.0, 1.0]</code>; the
+        compiler rejects out‑of‑range values.  An interval literal
+        <code>[lo, hi]</code> represents the bounds of an
+        <code>Uncertain&lt;T&gt;</code> value; must satisfy
+        <code>0.0 ≤ lo ≤ hi ≤ 1.0</code>.
+        Example: <code>[0.7, 0.9]</code>.
+      </p>
+
+      <h4>8.7 DID Literals</h4>
+      <p>
+        A W3C DID literal follows the pattern <code>"did:…"</code> and is
+        validated at lex time.  Syntactically valid but unresolvable DIDs
+        produce a warning and may raise an
+        <code>IdentityMismatch</code> effect at runtime.
+        Example: <code>"did:asl:abc123"</code>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Chapter 9: Operators ── -->
+  <section id="ch9">
+    <h3 class="chapter-title">9. Operators</h3>
+
+    <div class="placeholder">
+      <p>
+        ASL provides a rich set of operators.  Their precedence and
+        associativity are detailed in Appendix B.  Below is a summary.
+      </p>
+
+      <h4>9.1 Arithmetic</h4>
+      <p><code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>%</code></p>
+
+      <h4>9.2 Bitwise</h4>
+      <p><code>&amp;</code> <code>|</code> <code>^</code> <code>~</code> <code>&lt;&lt;</code> <code>&gt;&gt;</code></p>
+
+      <h4>9.3 Logical Short‑Circuit</h4>
+      <p><code>&amp;&amp;</code> <code>||</code> <code>!</code></p>
+
+      <h4>9.4 Comparison</h4>
+      <p><code>==</code> <code>!=</code> <code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code></p>
+
+      <h4>9.5 Assignment and Compound Assignment</h4>
+      <p><code>=</code> <code>+=</code> <code>-=</code> <code>*=</code> <code>/=</code> <code>%=</code> <code>&amp;=</code> <code>|=</code> <code>^=</code> <code>&lt;&lt;=</code> <code>&gt;&gt;=</code></p>
+
+      <h4>9.6 Range</h4>
+      <p><code>..</code> (exclusive), <code>..=</code> (inclusive)</p>
+
+      <h4>9.7 Path and Member Access</h4>
+      <p><code>::</code> <code>.</code></p>
+
+      <h4>9.8 Reference / Dereference</h4>
+      <p><code>&amp;</code> <code>&amp;&amp;</code> <code>*</code></p>
+
+      <h4>9.9 Error Propagation</h4>
+      <p>Postfix <code>?</code> on <code>Result</code> / <code>Option</code> values.</p>
+
+      <h4>9.10 Pipeline</h4>
+      <p><code>|&gt;</code> (simple), <code>|&gt;&gt;</code> (async), <code>|&amp;</code> (parallel fan‑out).</p>
+
+      <h4>9.11 Shell‑style Redirection</h4>
+      <p><code>&gt;</code> <code>&gt;&gt;</code> <code>&lt;</code> <code>&lt;&lt;</code> <code>2&gt;</code> <code>2&gt;&amp;1</code></p>
+
+      <h4>9.12 Type Annotation / Casting</h4>
+      <p><code>-&gt;</code> <code>=&gt;</code> <code>as</code> <code>as?</code></p>
+
+      <h4>9.13 Confidence Gate</h4>
+      <p><code>?!</code> – three‑valued gate on <code>Uncertain&lt;T&gt;</code> values.</p>
+
+      <h4>9.14 Annotation / Ontology Query</h4>
+      <p><code>@</code></p>
+
+      <h4>9.15 Mesh Communication</h4>
+      <p><code>~&gt;</code> (send), <code>&lt;~</code> (receive).</p>
+
+      <h4>9.16 Cryptographic Transfer</h4>
+      <p><code>transfer</code> keyword operator.</p>
+
+      <h4>9.17 Ontology Constraint</h4>
+      <p><code>:::</code></p>
+
+      <h4>9.18 Federation Publish</h4>
+      <p><code>@@</code></p>
+
+      <h4>9.19 Capability Requirement</h4>
+      <p><code>requires</code></p>
+    </div>
+  </section>
+
+  <!-- ── Chapter 10: Delimiters ── -->
+  <section id="ch10">
+    <h3 class="chapter-title">10. Delimiters</h3>
+
+    <div class="placeholder">
+      <table>
+        <thead><tr><th>Symbol</th><th>Name</th><th>Primary Use</th></tr></thead>
+        <tbody>
+          <tr><td><code>(</code> <code>)</code></td><td>Parentheses</td><td>Grouping, parameter lists, tuples</td></tr>
+          <tr><td><code>{</code> <code>}</code></td><td>Braces</td><td>Blocks, agent bodies, struct literals</td></tr>
+          <tr><td><code>[</code> <code>]</code></td><td>Brackets</td><td>Array literals, index expressions</td></tr>
+          <tr><td><code>,</code></td><td>Comma</td><td>Separates items in lists</td></tr>
+          <tr><td><code>;</code></td><td>Semicolon</td><td>Statement terminator (mandatory in S0)</td></tr>
+          <tr><td><code>:</code></td><td>Colon</td><td>Type annotations, field definitions</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Chapter 11: Token Trees ── -->
+  <section id="ch11">
+    <h3 class="chapter-title">11. Token Trees</h3>
+
+    <div class="placeholder">
+      <p>
+        Token trees are used in macro invocations and seed literal bodies.
+        They allow arbitrary nesting of brackets without the parser needing
+        to understand the interior structure until expansion.
+      </p>
+      <pre><code>token-tree ::= "(" token* ")"
+             | "[" token* "]"
+             | "{" token* "}"
+             | token</code></pre>
+      <p>
+        A token tree is a balanced bracket sequence or a single token.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Chapter 12: Lexical Disambiguation Rules ── -->
+  <section id="ch12">
+    <h3 class="chapter-title">12. Lexical Disambiguation Rules</h3>
+
+    <div class="placeholder">
+      <p>
+        Several character sequences are ambiguous in isolation.  The
+        following rules resolve those ambiguities.
+      </p>
+
+      <h4>R1 – <code>&gt;&gt;</code> vs. <code>&gt;</code> <code>&gt;</code></h4>
+      <p>
+        <code>&gt;&gt;</code> is always a single right‑shift token.  To
+        close two levels of generics, insert whitespace:
+        <code>HashMap&lt;i32, Vec&lt;i32&gt; &gt;</code>.
+      </p>
+
+      <h4>R2 – <code>?!</code> vs. <code>?</code> and <code>!</code></h4>
+      <p>
+        <code>?!</code> is a single confidence‑gate token.  In all
+        other positions, <code>?</code> and <code>!</code> retain their
+        individual meanings.
+      </p>
+
+      <h4>R3 – <code>..</code> context sensitivity</h4>
+      <p>
+        In range expressions, <code>..</code> denotes a half‑open range.
+        In an interval literal (<code>[lo, hi]</code>), commas separate
+        the bounds; <code>..</code> is not used.
+      </p>
+
+      <h4>R4 – <code>@</code> vs. <code>@@</code></h4>
+      <p>
+        The lexer always chooses the longest match, so
+        <code>@@</code> is a single federation‑publish token.
+      </p>
+
+      <h4>R5 – DID validation at lex time</h4>
+      <p>
+        DID literals are validated for W3C DID syntax during lexing.
+        Semantically invalid DIDs produce a warning and may raise
+        <code>IdentityMismatch</code> at runtime.
+      </p>
+    </div>
+  </section>
+</section>
 
     <!-- PART III – Syntax -->
     <section id="part-III" class="book-section">
