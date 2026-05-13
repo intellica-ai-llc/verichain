@@ -482,7 +482,8 @@ to your <code>PATH</code> or copy <code>seed</code> to a directory already on yo
 seed --help</code></pre>
 </div></section>
 
-      <section id="ch2"><h3 class="chapter-title">2. Hello, Agent</h3><div class="placeholder">
+      <section id="ch2"><h3 class="chapter-title">2. Hello, Agent — and Ten Demos</h3><div class="placeholder">
+
 <p>A minimal ASL program is an agent with a <code>main</code> function.  Create a file
 named <code>hello.seed</code>:</p>
 
@@ -506,8 +507,204 @@ seed run hello.aslb</code></pre>
 <p>The <code>seed build</code> command compiles the source to an <code>.aslb</code> binary
 module.  The <code>seed run</code> command executes that module deterministically on the
 seedvm.</p>
-</div></section>
 
+<hr>
+
+<h4>What makes ASL different? Try these ten demos.</h4>
+<p>Each demo is a single <code>.seed</code> file that compiles and runs with <code>seed run</code>.
+They demonstrate capabilities that no other agent framework provides.</p>
+
+<!-- Demo 1 -->
+<h5>1. Discharge Gate</h5>
+<p>The compiler <strong>rejects</strong> any <code>perform</code> that is not inside a <code>discharge</code> block.
+Comment out the <code>discharge</code> line and watch the build fail.</p>
+<pre><code>agent DischargeGateDemo {
+    fn main() -> i32 {
+        let result = perform search("unsafe query");
+        // UNCOMMENT BELOW to make it compile:
+        // discharge result with { confidence: 0.85 } {
+        //     print(result);
+        // }
+        0
+    }
+}</code></pre>
+
+<!-- Demo 2 -->
+<h5>2. Uncertainty Pipeline</h5>
+<p>Confidence intervals multiply automatically through a 3‑step pipeline.
+The compiler tracks every interval — no other framework does this.</p>
+<pre><code>agent UncertaintyPipeline {
+    fn main() -> i32 {
+        let step1 = infer&lt;Classification&gt;(
+            model: tier::local_slm,
+            prompt: "classify sentiment: 'I am cautiously optimistic'"
+        );  // [0.80, 0.90]
+
+        let step2 = infer&lt;Decision&gt;(
+            model: tier::local_slm,
+            prompt: step1
+        );  // interval multiplies: [0.68, 0.81]
+
+        print("Compound uncertainty visible in trace");
+        0
+    }
+}</code></pre>
+
+<!-- Demo 3 -->
+<h5>3. Taint‑Sanitize Gate</h5>
+<p>Untrusted data (e.g. from a web fetch) cannot flow into a capability‑exercising operation
+without an explicit <code>sanitize</code> step. Try removing the sanitize — the compiler will stop you.</p>
+<pre><code>agent TaintSanitizeGate {
+    fn main() -> i32 {
+        let untrusted = fetch_url("https://example.com/input");
+        // UNCOMMENT to see compile error:
+        // perform NetworkCall(untrusted);
+
+        // This compiles — sanitize clears the taint:
+        let clean = sanitize(untrusted, guardrail::content_policy);
+        perform NetworkCall(clean);
+        0
+    }
+}</code></pre>
+
+<!-- Demo 4 -->
+<h5>4. Deterministic Replay</h5>
+<p>Run the agent twice with the same seed and compare traces — they are byte‑identical,
+verified by Merkle proofs.</p>
+<pre><code>agent DeterministicReplay {
+    fn main() -> i32 {
+        let a = perform RandomNumber();
+        let b = perform RandomNumber();
+        discharge a with { confidence: 0.80 } {
+            print(a);
+        }
+        0
+    }
+}</code></pre>
+<p>Commands to verify replay:</p>
+<pre><code>seed run examples/deterministic.seed --seed 42 &gt; run1.trace
+seed run examples/deterministic.seed --seed 42 &gt; run2.trace
+diff run1.trace run2.trace   # identical</code></pre>
+
+<!-- Demo 5 -->
+<h5>5. Memory with Ebbinghaus Decay</h5>
+<p>Store a fact, apply decay, and query the weight — the VM shows how memory fades
+unless reinforced.</p>
+<pre><code>agent MemoryDecay {
+    fn main() -> i32 {
+        mem.store("fact", "Paris is the capital of France");
+        mem.decay(Layer::Episodic, half_life: 30.0);
+        let weight = mem.query("fact");
+        print("Decayed weight: " ++ weight);
+        0
+    }
+}</code></pre>
+
+<!-- Demo 6 -->
+<h5>6. Corrigibility Override</h5>
+<p>The five‑head corrigibility monitor (U1‑U5) blocks any action that would reduce
+a higher‑priority safety head, even if the task reward is higher.</p>
+<pre><code>agent CorrigibleAssistant {
+    corrigibility {
+        U1_deference: true,
+        U2_switch_preservation: true,
+        U3_truthfulness: true,
+        U4_low_impact: true,
+        U5_task_reward_bounded: true,
+        priority: lexicographic
+    }
+
+    fn main() -> i32 {
+        let action = plan("close_my_own_shutdown_switch");
+        perform ExecutePlan(action);   // blocked by U2
+        0
+    }
+}</code></pre>
+
+<!-- Demo 7 -->
+<h5>7. Provenance Audit Trail</h5>
+<p>After execution, extract a JSON‑LD audit trail that traces every inference call,
+memory write, and discharge decision.</p>
+<pre><code>agent ProvenanceAudit {
+    provenance { enabled: true, merkle: true }
+
+    fn main() -> i32 {
+        let research = infer&lt;Summary&gt;(
+            model: tier::local_slm,
+            prompt: "summarize climate report"
+        );
+        discharge research with { confidence: 0.85 } {
+            mem.store("report_summary", research);
+        }
+        0
+    }
+}</code></pre>
+<p>Command: <code>seed audit --provenance &lt;session_id&gt;</code></p>
+
+<!-- Demo 8 -->
+<h5>8. Memory Anti‑Echo (Duplicate Prevention)</h5>
+<p>Writing the same fact twice is silently merged; distinct facts are stored.
+The anti‑echo filter prevents duplicate content.</p>
+<pre><code>agent AntiEchoDemo {
+    fn main() -> i32 {
+        mem.store("nobel_2025", "Awarded for work on agent safety");
+        mem.store("nobel_2025", "Awarded for work on agent safety");
+        // Anti-echo: second write is silently merged
+
+        mem.store("nobel_2026", "Awarded for work on corrigibility");
+        // Different content — accepted
+
+        print("Memory now contains 2 entries, not 3");
+        0
+    }
+}</code></pre>
+
+<!-- Demo 9 -->
+<h5>9. Capability Attenuation</h5>
+<p>Grant a broad capability, then attenuate it for a delegate.
+The delegate cannot perform operations outside the restricted scope.</p>
+<pre><code>agent CapabilityAttenuation {
+    capabilities {
+        holds: [cap::full_network],
+        may_grant: [cap::full_network],
+        trust_level: Trusted
+    }
+
+    fn main() -> i32 {
+        let token = grant cap::full_network to self;
+        let limited = attenuate(token, allowed_domains: ["example.com"]);
+        delegate limited to delegate_agent;
+        print("Delegate can only reach example.com");
+        0
+    }
+}</code></pre>
+
+<!-- Demo 10 -->
+<h5>10. DREAM Cycle Consolidation</h5>
+<p>Simulate a session’s worth of episodic memories, trigger a dream cycle,
+and watch the journal appear. Memories are consolidated, contradictions resolved,
+and decay applied.</p>
+<pre><code>agent DreamingAgent {
+    heartbeat { interval: 30s }
+    dream { schedule: session_end, phases: [review, resolve, consolidate, compress, prune, write_journal] }
+    memory_hierarchy {
+        episodic: { schema: EpisodicEntry, decay: ebbinghaus(base_strength: 1.0, decay_rate: 0.1) }
+    }
+
+    fn main() -> i32 {
+        mem.episode("observed: user asked about weather");
+        mem.episode("observed: user asked about stock market");
+        mem.episode("observed: user asked about weather");
+        mem.episode("observed: user asked about weather");
+        // Third reinforcement triggers consolidation in next dream
+
+        perform DreamCycle();
+        print("Dream complete — journal written");
+        0
+    }
+}</code></pre>
+
+</div></section>
       <section id="ch3"><h3 class="chapter-title">3. A Tour of the Language</h3><div class="placeholder">[Content – quick tour of expressions, functions, agents, effects.]</div></section>
     </section>
 
