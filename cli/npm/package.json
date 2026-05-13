@@ -1,7 +1,7 @@
 {
-  "name": "@agentseed/cli",
+  "name": "@asl-lang/cli",
   "version": "0.1.0",
-  "description": "AGENT-SEED v15.2 unified CLI",
+  "description": "AGENT-SEED v0.1.0 unified CLI",
   "bin": { "seed": "./bin/seed.js" },
   "scripts": { "postinstall": "node scripts/download.js" }
 }
