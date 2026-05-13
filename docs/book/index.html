@@ -307,29 +307,131 @@ footer{border-top:1px solid var(--border);padding:40px 48px;display:flex;align-i
 
     <!-- INTRO: WHAT ASL CAN DO -->
     <section id="intro" class="book-section">
-      <h2 class="part-title">AGENT‑SEED v15.2 — Autonomous Systems Language (ASL) User Manual</h2>
-      <div class="placeholder">Edition Notice
-This manual covers ASL v15.2 (Edition 2026), the definitive version of the Autonomous Systems Language. The reference implementation is the Agent Seed toolchain (seedc, seedvm, seedpkg, seedls, seedfmt, seeddbg). Foreword: The Philosophy of ASL
-The Autonomous Systems Language (ASL) is a programming language purpose‑built for autonomous agentic systems. It is not a general‑purpose language adapted to agents; it is a language whose every construct—from the type system to the runtime—is designed to express, constrain, and execute autonomous behaviour safely, deterministically, and with full audibility.
+      <h2 class="part-title">AGENT‑SEED v15.2 — User Manual</h2>
+      <div class="placeholder">
 
-ASL is grounded in the following fundamental principles: Conformance is verified against the ASL‑CONF‑15 test suite. 1. Composition that Cannot Multiply Errors — Computation<T, ε> and the Uncertain<T> Monad
-The O'Reilly analysis frames multi-agent systems as "probabilistic pipelines, where every unvalidated handoff multiplies uncertainty." Liu's λ_A calculus provides the formal foundation. AGENT‑SEED provides the concrete implementation.
+<p><strong>Edition 2026 · v15.2</strong></p>
+<p>
+  This manual covers the definitive version of the Autonomous Systems Language.
+  The reference implementation is the Agent Seed toolchain:
+  <code>seedc</code> (compiler), <code>seedvm</code> (virtual machine),
+  <code>seedpkg</code> (package manager), <code>seedls</code> (language server),
+  <code>seedfmt</code> (formatter), and <code>seeddbg</code> (debug adapter).
+  Conformance is verified against the ASL‑CONF‑15 test suite (253 tests, 22 categories).
+</p>
 
-In ASL, no value exists outside a Computation<T, ε>. Every computation carries an uncertainty interval, taint influence, cost bounds, capability requirements, and provenance reference. The discharge expression — the only way to unwrap a computation — must explicitly check all thresholds:
+<hr>
 
-text
-discharge findings with { confidence: 0.85, taint: 0.2, budget: remaining } {
+<h3>What is ASL?</h3>
+
+<p>
+  The Autonomous Systems Language (ASL) is a programming language
+  purpose‑built for autonomous agentic systems.  It is not a general‑purpose
+  language adapted to agents; it is a language whose every construct—from the
+  type system to the runtime—is designed to express, constrain, and execute
+  autonomous behaviour safely, deterministically, and with full auditability.
+</p>
+
+<p>ASL is grounded in four fundamental principles:</p>
+
+<ol>
+  <li>
+    <strong>No value exists outside a Computation.</strong>
+    Every effectful operation returns <code>Computation&lt;T, ε&gt;</code>,
+    which carries uncertainty, taint, cost, and capability metadata.
+    The <code>discharge</code> block is the only way to unwrap a computation,
+    and it must explicitly check every threshold.
+  </li>
+  <li>
+    <strong>Uncertainty is first‑class and never silently discarded.</strong>
+    The <code>Uncertain&lt;T&gt;</code> monad (U1–U6 axioms) tracks
+    probability intervals through every pipeline stage, giving the programmer
+    a direct, type‑checked view of how confidence compounds.
+  </li>
+  <li>
+    <strong>Effects, taint, and capabilities compose safely or not at all.</strong>
+    Effect rows declare what a function may perform.  Taint analysis
+    (Clean/Agnostic/Tainted) prevents untrusted data from reaching
+    capability‑exercising code.  Capability tokens are unforgeable and
+    checked at both compile time and runtime.
+  </li>
+  <li>
+    <strong>Every action is auditable, reproducible, and provable.</strong>
+    The deterministic VM preserves a provenance log, a Merkle‑proofed
+    memory hierarchy, and a schedule trace that enables exact replay.
+  </li>
+</ol>
+
+<hr>
+
+<h3>The Computation&lt;T, ε&gt; Monad</h3>
+
+<p>
+  In ASL, every effectful expression produces a
+  <code>Computation&lt;T, ε&gt;</code>—a value of type <code>T</code> paired
+  with an effect record <code>ε</code> that contains:
+</p>
+
+<ul>
+  <li><code>uncertainty: Interval[0,1]</code> — pessimistic and optimistic confidence bounds</li>
+  <li><code>taint: TaintMeta</code> — causal influence tracking from untrusted sources</li>
+  <li><code>cost: CostInterval</code> — token and time budget consumed</li>
+  <li><code>capabilities: Set&lt;CapabilityToken&gt;</code> — permissions exercised</li>
+  <li><code>provenance: ProvenanceRef</code> — pointer into the audit trail</li>
+</ul>
+
+<p>
+  The only escape from the <code>Computation</code> wrapper is the
+  <code>discharge</code> block:
+</p>
+
+<pre><code>discharge findings with {
+    confidence: 0.85,
+    taint: 0.2,
+    budget: remaining
+} {
     synthesize(findings)
-}
-The U1–U6 axioms of Uncertain<T> provide a formal probability monad with interval semantics. U2 (Bind) multiplies intervals through composition, giving the programmer a direct, type-checked view of how uncertainty compounds:
+}</code></pre>
 
-text
-// Uncertainty accumulates at every pipeline stage — compiler tracks it
-let result = infer<StepOne>(...)     // [0.88, 0.94]
-    |> infer<StepTwo>(...)           // [0.85, 0.92]  
-    |> infer<StepThree>(...);        // [0.90, 0.95]
-// result: Uncertain<Final>[0.673, 0.822]  — computed automatically
-(... continue existing intro content ...)</div>
+<p>
+  If any threshold is not met—confidence too low, taint influence too high,
+  budget exhausted, or required capability not held—the discharge fails
+  and the program cannot proceed.  This is enforced at both compile time
+  (the type checker rejects <code>perform</code> outside <code>discharge</code>)
+  and runtime (the VM gate checks thresholds before unwrapping).
+</p>
+
+<hr>
+
+<h3>The Uncertain&lt;T&gt; Monad (U1–U6)</h3>
+
+<p>
+  Uncertainty propagates through compositions via the U2 (Bind) axiom:
+  intervals multiply component‑wise, so confidence degrades
+  conservatively through pipelines:
+</p>
+
+<pre><code>let result = infer&lt;StepOne&gt;(model: route::select(task), prompt: p1)   // [0.88, 0.94]
+    |&gt; infer&lt;StepTwo&gt;(model: route::select(task), prompt: _)           // [0.85, 0.92]
+    |&gt; infer&lt;StepThree&gt;(model: route::select(task), prompt: _);       // [0.90, 0.95]
+// result: Uncertain&lt;Final&gt;[0.673, 0.822]  — computed automatically</code></pre>
+
+<p>
+  The three‑valued <code>?!</code> gate returns <code>Some(T)</code>,
+  <code>None</code>, or <code>Ambiguous(T)</code>, forcing the programmer to
+  handle the case where confidence straddles the threshold rather than
+  collapsing ambiguity into a premature decision.
+</p>
+
+<p>
+  For the full formal specification, see the
+  <a href="https://github.com/agentseedlanguage-cpu/agentseed/blob/main/AgentSeedLanguage_V15.md">language specification</a>.
+  The underlying theory is presented in
+  <em>AGENT‑SEED: A Type‑Safe Language for Autonomous Agents with Verified Effect Discharge</em>
+  (Ramsajan, 2026).
+</p>
+
+</div>
     </section>
 
    <!-- PART I -->
