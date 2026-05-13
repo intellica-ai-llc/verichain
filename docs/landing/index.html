@@ -513,22 +513,22 @@ footer{
 
 <!-- ── RESEARCH PAPER ── -->
 <section class="section" id="paper">
-  <div class="section-label">Research paper</div>
-  <h2 class="section-title">The formal foundation behind<br>every design decision.</h2>
+    <div class="section-label">Research paper</div>
+  <h2 class="section-title">A unified effect type system and language<br>for safe autonomous agents.</h2>
   <p class="section-sub">
-    A complete academic treatment of ASL — the <code style="color:var(--accent);font-family:var(--mono);font-size:14px">Computation〈T,ε〉</code> graded monad, the discharge gate, the formal type system (Hindley‑Milner + affine types + effect rows + taint levels), and the 253‑test conformance suite that validates every safety theorem empirically.
+    Introduces the <code style="color:var(--accent);font-family:var(--mono);font-size:14px">Computation〈T,ε〉</code> graded monad and the <code style="color:var(--accent);font-family:var(--mono);font-size:14px">discharge</code> gate as the sole mechanism to unwrap effectful values. Presents a formal type system extending Hindley‑Milner with affine types, effect rows, and taint levels. Proves two safety theorems — effect soundness and taint integrity — and describes an end‑to‑end implementation with a 253‑test conformance suite.
   </p>
 
   <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:32px;align-items:center">
-    <a href="https://raw.githubusercontent.com/agentseedlanguage-cpu/agentseed/main/docs/book/ASL_A_Unified_Effect_Type_System_and_Language_for_Safe__Autonomous_Multi_Agent_Systems%20(2).pdf"
-       target="_blank"
-       class="btn btn-p"
-       style="font-size:14px;padding:12px 28px">
-      📄 Read the paper (PDF)
-    </a>
-    <span style="font-family:var(--mono);font-size:12px;color:var(--muted)">
-      May 2026 · 8 pages · Damain Peter Ramsajan
-    </span>
+  <a href="#" id="paper-cta-btn"
+     class="btn btn-p"
+     style="font-size:14px;padding:12px 28px"
+     onclick="event.preventDefault(); openPdfLightbox(); return false;">
+    📄 Read the paper (PDF)
+  </a>
+  <span style="font-family:var(--mono);font-size:12px;color:var(--muted)">
+    May 2026 · 8 pages · Damain Peter Ramsajan
+  </span>
   </div>
 
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:36px">
@@ -942,5 +942,105 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   });
 });
 </script>
+
+<!-- ── PDF Lightbox ── -->
+<style>
+  .pdf-lightbox {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(10,10,20,0.94);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  .pdf-lightbox.active { display: flex; }
+  .pdf-lightbox .close-btn {
+    position: absolute;
+    top: 1rem; right: 1.5rem;
+    font-size: 2rem; color: #ccc; cursor: pointer;
+    z-index: 10; user-select: none;
+    font-family: var(--mono);
+  }
+  .pdf-lightbox .close-btn:hover { color: #fff; }
+  .pdf-scroll {
+    width: 100%; height: 100%;
+    overflow-y: auto;
+    padding: 2rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .pdf-scroll canvas {
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+    border-radius: 2px;
+    max-width: 100%;
+    height: auto;
+  }
+</style>
+
+<div class="pdf-lightbox" id="pdfLightbox">
+  <span class="close-btn" id="pdfCloseBtn">&times;</span>
+  <div class="pdf-scroll" id="pdfScrollContainer"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" type="module"></script>
+<script type="module">
+  import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs';
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
+
+  const lightbox = document.getElementById('pdfLightbox');
+  const scrollContainer = document.getElementById('pdfScrollContainer');
+  const closeBtn = document.getElementById('pdfCloseBtn');
+
+  function closePdfLightbox() {
+    lightbox.classList.remove('active');
+    scrollContainer.innerHTML = '';
+  }
+
+  closeBtn.addEventListener('click', closePdfLightbox);
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closePdfLightbox();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && lightbox.classList.contains('active')) closePdfLightbox();
+  });
+
+  async function openPdfLightbox() {
+    lightbox.classList.add('active');
+    scrollContainer.innerHTML = '';
+    const pdfUrl = 'https://raw.githubusercontent.com/agentseedlanguage-cpu/agentseed/main/docs/book/ASL_A_Unified_Effect_Type_System_and_Language_for_Safe__Autonomous_Multi_Agent_Systems%20(2).pdf';
+
+    try {
+      const loadingTask = pdfjsLib.getDocument(pdfUrl);
+      const pdf = await loadingTask.promise;
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 1.5 });
+        const canvas = document.createElement('canvas');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        scrollContainer.appendChild(canvas);
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      }
+    } catch (err) {
+      console.error('Could not load PDF:', err);
+      scrollContainer.innerHTML = '<p style="color:#fff;text-align:center;padding:2rem">Unable to load the paper. Please try again later.</p>';
+    }
+  }
+
+  // Attach to CTA button
+  const ctaBtn = document.getElementById('paper-cta-btn');
+  if (ctaBtn) {
+    ctaBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openPdfLightbox();
+    });
+  }
+</script>
+
 </body>
 </html>
