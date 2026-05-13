@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ASL Playground – Write, Compile & Run Agents</title>
+<meta name="description" content="Write and run ASL agent code directly in your browser using the seedc compiler and seedvm virtual machine compiled to WebAssembly."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #07080a;
+  --bg2:       #0d0f14;
+  --bg3:       #111318;
+  --border:    rgba(255,255,255,0.07);
+  --borderB:   rgba(255,255,255,0.13);
+  --text:      #e8eaf0;
+  --muted:     #727a8c;
+  --dim:       #4a5162;
+  --accent:    #3dffa0;
+  --accentD:   rgba(61,255,160,0.11);
+  --accentG:   rgba(61,255,160,0.22);
+  --blue:      #4da8ff;
+  --blueD:     rgba(77,168,255,0.11);
+  --amber:     #f5c842;
+  --red:       #ff5f5f;
+  --mono:      'IBM Plex Mono', monospace;
+  --sans:      'DM Sans', sans-serif;
+  --disp:      'Syne', sans-serif;
+  --r:         6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.65;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
+}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;border-bottom:1px solid var(--border);background:rgba(7,8,10,0.88);backdrop-filter:blur(14px)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:800;font-size:16px;letter-spacing:-0.02em;color:var(--text);text-decoration:none}
+.logo-pip{width:22px;height:22px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;color:#07080a;font-weight:800;font-family:var(--mono)}
+.nav-links{display:flex;align-items:center;gap:28px;list-style:none}
+.nav-links a{color:var(--muted);text-decoration:none;font-family:var(--mono);font-size:12.5px;letter-spacing:0.03em;transition:color .18s}
+.nav-links a:hover{color:var(--text)}
+.nav-right{display:flex;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 17px;border-radius:var(--r);font-family:var(--mono);font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:all .18s;border:1px solid transparent;letter-spacing:0.02em}
+.btn-p{background:var(--accent);color:#07080a;border-color:var(--accent);font-weight:700}
+.btn-p:hover{background:#5cffb0;box-shadow:0 0 28px var(--accentG)}
+.btn-g{background:transparent;color:var(--muted);border-color:var(--borderB)}
+.btn-g:hover{color:var(--text);border-color:rgba(255,255,255,0.24);background:rgba(255,255,255,0.04)}
+
+/* ── LAYOUT ── */
+.playground-layout{display:flex;height:calc(100vh - 58px);margin-top:58px}
+.editor-panel{flex:1;min-width:0;background:var(--bg2);border-right:1px solid var(--border)}
+.output-panel{width:420px;display:flex;flex-direction:column;background:var(--bg)}
+.output-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--dim)}
+.output-body{flex:1;overflow-y:auto;padding:16px 24px;font-family:var(--mono);font-size:13px;line-height:1.7;color:var(--muted)}
+.run-bar{display:flex;align-items:center;gap:12px;padding:12px 20px;border-top:1px solid var(--border)}
+.run-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 22px;border-radius:var(--r);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .18s;border:1px solid transparent;background:var(--accent);color:#07080a;letter-spacing:0.02em}
+.run-btn:hover{background:#5cffb0;box-shadow:0 0 28px var(--accentG)}
+.run-btn:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none}
+.stratum-select{font-family:var(--mono);font-size:12px;background:var(--bg);color:var(--muted);border:1px solid var(--border);border-radius:var(--r);padding:6px 12px}
+
+/* ── ORBS ── */
+.orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:-1}
+.orb1{width:500px;height:500px;background:radial-gradient(circle,rgba(61,255,160,0.03) 0%,transparent 70%);top:100px;right:-100px}
+.orb2{width:400px;height:400px;background:radial-gradient(circle,rgba(77,168,255,0.03) 0%,transparent 70%);bottom:50px;left:-100px}
+
+/* ── MOBILE ── */
+@media(max-width:900px){
+  .playground-layout{flex-direction:column;height:auto}
+  .editor-panel{height:60vh;border-right:none;border-bottom:1px solid var(--border)}
+  .output-panel{width:100%;height:40vh}
+  nav{padding:0 24px}
+}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<nav>
+  <a class="nav-logo" href="https://agentseedlanguage-cpu.github.io/agentseed/landing/">
+    <span class="logo-pip">A</span>
+    ASL
+  </a>
+  <ul class="nav-links">
+    <li><a href="https://agentseedlanguage-cpu.github.io/agentseed/landing/#how">How it works</a></li>
+    <li><a href="https://agentseedlanguage-cpu.github.io/agentseed/landing/#strata">Strata</a></li>
+    <li><a href="https://agentseedlanguage-cpu.github.io/agentseed/landing/#compare">Compare</a></li>
+    <li><a href="/agentseed/book/">Manual</a></li>
+    <li><a href="/agentseed/api/">API</a></li>
+    <li><a href="https://github.com/agentseedlanguage-cpu/agentseed">GitHub</a></li>
+  </ul>
+  <div class="nav-right">
+    <a class="btn btn-g" href="https://discord.gg/agentseed">Discord</a>
+    <a class="btn btn-p" href="/agentseed/book/">Get started →</a>
+  </div>
+</nav>
+
+<div class="playground-layout">
+  <div class="editor-panel" id="editor"></div>
+
+  <div class="output-panel">
+    <div class="output-header">
+      <span>output</span>
+      <span id="wasm-status">WASM not loaded</span>
+    </div>
+    <div class="output-body" id="output">
+      <!-- compile & run results appear here -->
+    </div>
+    <div class="run-bar">
+      <select class="stratum-select" id="stratum">
+        <option value="S0">S0 · asl-seed</option>
+        <option value="S1" selected>S1 · asl-core</option>
+      </select>
+      <button class="run-btn" id="run-btn" onclick="run()" disabled>
+        ▶ Run
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs/loader.js"></script>
+<script>
+// ── Sample program ──
+const DEFAULT_CODE = `agent hello {
+    fn main() -> i32 {
+        print("Hello, Agent!");
+        0
+    }
+}
+`;
+
+// ── Build the editor ──
+require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.47.0/min/vs' } });
+require(['vs/editor/editor.main'], function () {
+    monaco.editor.defineTheme('asl-dark', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [
+            { token: 'keyword', foreground: '4da8ff', fontStyle: 'bold' },
+            { token: 'type', foreground: '3dffa0' },
+            { token: 'string', foreground: 'f59e42' },
+            { token: 'number', foreground: 'fb923c' },
+            { token: 'comment', foreground: '4a5162', fontStyle: 'italic' },
+            { token: 'annotation', foreground: 'a78bfa' }
+        ],
+        colors: {
+            'editor.background': '#0d0f14',
+            'editor.foreground': '#c9d1e0',
+            'editor.lineHighlightBackground': '#111318',
+            'editorCursor.foreground': '#3dffa0',
+            'editor.selectionBackground': '#25381f',
+            'editor.inactiveSelectionBackground': '#1a1f1a'
+        }
+    });
+
+    const editor = monaco.editor.create(document.getElementById('editor'), {
+        value: DEFAULT_CODE,
+        language: 'rust',
+        theme: 'asl-dark',
+        fontSize: 13,
+        fontFamily: "'IBM Plex Mono', monospace",
+        lineNumbers: 'on',
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        automaticLayout: true
+    });
+});
+
+// ── Placeholder run function ──
+function run() {
+    const output = document.getElementById('output');
+    output.innerHTML += '<div style="color:var(--amber);margin-bottom:8px">⏳ WASM modules not yet loaded. Full in‑browser compilation & execution is coming soon.</div>';
+    output.scrollTop = output.scrollHeight;
+}
+</script>
+</body>
+</html>

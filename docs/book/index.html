@@ -332,75 +332,80 @@ let result = infer<StepOne>(...)     // [0.88, 0.94]
 (... continue existing intro content ...)</div>
     </section>
 
-    <!-- PART I -->
+   <!-- PART I -->
     <section id="part-I" class="book-section">
       <h2 class="part-title">Part I – Getting Started</h2>
       <section id="ch1"><h3 class="chapter-title">1. Installation</h3><div class="placeholder">
-The Agent Seed toolchain is under active development and currently built from source. Pre‑built binaries and package registries are planned for the first public release.
+<p>The first public release (v0.1.0) provides pre‑built binaries for Linux, macOS, and Windows. You can also build the toolchain from source with Rust ≥ 1.85.</p>
 
-1.1 Platform Support & Prerequisites
-ASL runs on Linux (x86_64, arm64), macOS (x86_64, arm64), and Windows (x86_64). The only prerequisite is a recent Rust toolchain (stable, ≥1.85).
+<h4>1.1 Download pre‑built binaries (recommended)</h4>
+<p>Get the correct file from the <a href="https://github.com/agentseedlanguage-cpu/agentseed/releases/tag/v0.1.0">v0.1.0 release page</a>:</p>
+<table>
+<thead><tr><th>Platform</th><th>File</th></tr></thead>
+<tbody>
+<tr><td>Linux x86_64</td><td><code>seed-linux-x64</code></td></tr>
+<tr><td>macOS Intel</td><td><code>seed-macos-x64</code></td></tr>
+<tr><td>macOS Apple Silicon</td><td><code>seed-macos-arm64</code></td></tr>
+<tr><td>Windows x86_64</td><td><code>seed-windows-x64.exe</code></td></tr>
+</tbody>
+</table>
 
-Install Rust if you don't have it:
+<p><strong>Linux / macOS</strong></p>
+<pre><code>chmod +x seed-linux-x64           # or seed-macos-*
+sudo cp seed-linux-x64 /usr/local/bin/seed
+seed --help</code></pre>
 
-bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
-1.2 Building from Source
-Clone the repository and build the workspace:
+<p><strong>Windows</strong></p>
+<p>Rename <code>seed-windows-x64.exe</code> to <code>seed.exe</code> and place it in a
+folder that is on your <code>PATH</code>.</p>
 
-bash
-git clone https://github.com/agentseedlanguage-cpu/agentseed.git
+<h4>1.2 Build from source</h4>
+<p>Install Rust if you don't have it:</p>
+<pre><code>curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"</code></pre>
+
+<p>Clone the repository and build the workspace:</p>
+<pre><code>git clone https://github.com/agentseedlanguage-cpu/agentseed.git
 cd agentseed
-cargo build --workspace --release
-The binaries are placed in target/release/:
+cargo build --workspace --release</code></pre>
 
-seedc – the compiler
+<p>The unified binary is <code>target/release/seed</code>.  Add <code>target/release/</code>
+to your <code>PATH</code> or copy <code>seed</code> to a directory already on your <code>PATH</code>.</p>
 
-seedvm – the virtual machine
+<h4>1.3 Install via npm (coming soon)</h4>
+<pre><code>npm install -g @agentseed/cli          # not yet published</code></pre>
 
-seedpkg – the package manager (scaffold)
+<h4>1.4 Verify installation</h4>
+<pre><code>seed --version   # seed 0.1.0
+seed --help</code></pre>
+</div></section>
 
-seedls – the language server (scaffold)
+      <section id="ch2"><h3 class="chapter-title">2. Hello, Agent</h3><div class="placeholder">
+<p>A minimal ASL program is an agent with a <code>main</code> function.  Create a file
+named <code>hello.seed</code>:</p>
 
-seedfmt – the code formatter
-
-seeddbg – the debug adapter
-
-Add target/release/ to your PATH for convenience, or run the binaries directly.
-
-1.3 Install via npm / curl (coming soon)
-bash
-npm install -g @agentseed/cli          # not yet published
-curl … | sh                            # not yet available
-These distribution channels will be available with the first public release.
-
-1.4 Verify Installation
-bash
-./target/release/seedc --version   # seedc 0.1.0
-./target/release/seedvm --version  # seedvm 0.1.0</div></section>
-      <section id="ch2"><h3 class="chapter-title">2. Hello, Agent</h3><div class="placeholder">A minimal ASL program is an agent with a main function. Create a file named hello.seed:
-
-seed
-agent hello {
+<pre><code>agent hello {
     fn main() -> i32 {
         print("Hello, Agent!");
         0
     }
-}
-Compile it to bytecode:
+}</code></pre>
 
-bash
-./target/release/seedc build hello.seed -o hello.aslb
-Run the compiled module on the VM:
+<p>Compile and run the program with a single command:</p>
+<pre><code>seed run hello.seed</code></pre>
 
-bash
-./target/release/seedvm run hello.aslb
-Output:
+<p>Output:</p>
+<pre><code>Hello, Agent!</code></pre>
 
-text
-Hello, Agent!
-The seedc build command compiles the source to a binary .aslb module. The seedvm run command executes that module deterministically.</div></section>
+<p>If you prefer separate steps, compile to bytecode first:</p>
+<pre><code>seed build hello.seed -o hello.aslb
+seed run hello.aslb</code></pre>
+
+<p>The <code>seed build</code> command compiles the source to an <code>.aslb</code> binary
+module.  The <code>seed run</code> command executes that module deterministically on the
+seedvm.</p>
+</div></section>
+
       <section id="ch3"><h3 class="chapter-title">3. A Tour of the Language</h3><div class="placeholder">[Content – quick tour of expressions, functions, agents, effects.]</div></section>
     </section>
 
