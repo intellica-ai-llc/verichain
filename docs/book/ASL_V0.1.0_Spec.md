@@ -2,7 +2,7 @@ Atonomoous Systemms Language — Specification v0.1.0
 ASL-SPEC-0.1.0 | Edition 2026 | Status: Draft for Review
 
 ---BEGIN AGENT-SEED v0.1.0--
-@AGENT-SEED/0.1.0
+@AGENT-SEED/0.1.0  -- Author -- Damain Peter Ramsajan
 
 ╔══════════════════════════════════════════════════════════════════════╗
 ║ §META-SEED — Unified Agentic Language & Virtual ISA                ║

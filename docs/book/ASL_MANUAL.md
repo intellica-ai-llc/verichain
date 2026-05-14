@@ -5,6 +5,8 @@ Title Page
 
 Edition Notice (v15.2, Edition 2026, ISO/IEC 5230:2029/Amd.5)
 
+Author -- Damain Peter Ramsajan
+
 Legal & Conformance Statement
 
 Foreword: The Philosophy of ASL
