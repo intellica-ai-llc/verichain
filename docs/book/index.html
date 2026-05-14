@@ -65,8 +65,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;height:58px;display:flex;ali
 .toc .toc-sub{padding-left:12px;font-size:12.5px;color:var(--dim)}
 .main-content{margin-left:300px;flex:1;padding:40px 64px 80px;max-width:960px}
 .section-label{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
-.part-title{font-family:var(--disp);font-size:clamp(28px,3.5vw,44px);font-weight:800;letter-spacing:-0.02em;color:var(--text);margin-bottom:28px;line-height:1.2}
-.chapter-title{font-family:var(--disp);font-weight:700;font-size:22px;color:var(--text);margin:36px 0 14px;line-height:1.3}
+.part-title{font-family:var(--disp);font-size:clamp(22px,3.5vw,44px);font-weight:800;letter-spacing:-0.02em;color:var(--text);margin-bottom:28px;line-height:1.2}
+.chapter-title{font-family:var(--disp);font-weight:700;font-size:18px;color:var(--text);margin:36px 0 14px;line-height:1.3}
 .book-section{margin-bottom:64px;border-bottom:1px solid var(--border);padding-bottom:40px}
 .book-section:last-child{border-bottom:none}
 .placeholder{color:var(--dim);font-family:var(--mono);font-size:14px;line-height:1.7;margin:16px 0;padding:16px 24px;background:var(--bg2);border:1px solid var(--borderB);border-radius:8px}
@@ -4906,15 +4906,217 @@ seed::trajectory_audit	Retrospective formal verification of agent action logs ag
 seed::agent_contract	Resource‑bounded agent contracts: lifecycle states, conservation laws, and enforcement.</div></section>
     </section>
 
-    <!-- PART XX – Developer Tooling -->
-    <section id="part-XX" class="book-section">
-      <h2 class="part-title">Part XX – Developer Tooling</h2>
-      <div class="placeholder">[Content]</div>
-    </section>
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- PART XX – DEVELOPER TOOLING -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
 
-    <!-- APPENDICES -->
-    <section id="appendix" class="book-section">
-      <h2 class="part-title">Appendices</h2>
+<section id="part-XX" class="book-section">
+  <h2 class="part-title">Part XX – Developer Tooling</h2>
+
+  <!-- ── Chapter 86: Compiler (seedc) ── -->
+  <section id="ch86">
+    <h3 class="chapter-title">86. Compiler (seedc)</h3>
+    <div class="placeholder">
+      <p>
+        The compiler binary <code>seedc</code> compiles <code>.seed</code>
+        source files into <code>.aslb</code> bytecode modules, performs
+        static checks, emits IR, exports grammar, and runs proofs.  It is
+        the primary development interface.
+      </p>
+
+      <h4>86.1 Global Options</h4>
+      <table>
+        <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>-v</code>, <code>-vv</code>, <code>-vvv</code>, <code>-vvvv</code></td><td>Verbosity: warn, info, debug, trace</td></tr>
+          <tr><td><code>-q</code>, <code>--quiet</code></td><td>Suppress all output except errors</td></tr>
+          <tr><td><code>-h</code>, <code>--help</code></td><td>Print help</td></tr>
+          <tr><td><code>-V</code>, <code>--version</code></td><td>Print version</td></tr>
+        </tbody>
+      </table>
+
+      <h4>86.2 Subcommands</h4>
+      <table>
+        <thead><tr><th>Subcommand</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>build</code></td><td>Compile a <code>.seed</code> source file to an <code>.aslb</code> bytecode module</td></tr>
+          <tr><td><code>check</code></td><td>Type‑check and verify without emitting bytecode</td></tr>
+          <tr><td><code>run</code></td><td>Compile and immediately execute on the VM</td></tr>
+          <tr><td><code>emit-ir</code></td><td>Emit the intermediate representation (IR) as text, binary, or DOT</td></tr>
+          <tr><td><code>emit-grammar</code></td><td>Export the GBNF grammar used for constrained LLM decoding</td></tr>
+          <tr><td><code>prove</code></td><td>Generate static analysis proofs (property verification)</td></tr>
+        </tbody>
+      </table>
+
+      <h4>86.3 <code>seedc build</code></h4>
+      <pre><code>seedc build &lt;SOURCE&gt; [OPTIONS]</code></pre>
+      <table>
+        <thead><tr><th>Option</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>-o</code>, <code>--output &lt;OUTPUT&gt;</code></td><td>Path for the compiled <code>.aslb</code> binary. Defaults to <code>&lt;SOURCE&gt;.aslb</code>.</td></tr>
+          <tr><td><code>-O</code>, <code>--opt-level &lt;0‑3&gt;</code></td><td>Optimisation level (default 2).</td></tr>
+          <tr><td><code>--target &lt;TARGET&gt;</code></td><td>Target architecture (default <code>seedvm</code>).</td></tr>
+          <tr><td><code>-g</code>, <code>--debug</code></td><td>Emit debug information.</td></tr>
+        </tbody>
+      </table>
+
+      <h4>86.4 <code>seedc check</code></h4>
+      <pre><code>seedc check &lt;SOURCE&gt; [OPTIONS]</code></pre>
+      <table>
+        <thead><tr><th>Option</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>-W</code>, <code>--warnings</code></td><td>Enable warnings that are suppressed by default.</td></tr>
+        </tbody>
+      </table>
+
+      <h4>86.5 <code>seedc run</code></h4>
+      <pre><code>seedc run &lt;SOURCE&gt; [-- &lt;AGENT_ARGS&gt;...]</code></pre>
+      <p>Arguments after <code>--</code> are passed to the running agent.</p>
+
+      <h4>86.6 <code>seedc emit-ir</code></h4>
+      <pre><code>seedc emit-ir &lt;SOURCE&gt; [--format &lt;FORMAT&gt;]</code></pre>
+      <p><code>--format</code> may be <code>text</code> (S‑expression, default), <code>binary</code> (raw <code>.aslb</code>), or <code>dot</code> (Graphviz CFG).</p>
+
+      <h4>86.7 <code>seedc emit-grammar</code></h4>
+      <pre><code>seedc emit-grammar [--format &lt;FORMAT&gt;] [-o &lt;PATH&gt;]</code></pre>
+      <p><code>--format</code> may be <code>gbnf</code> (default), <code>ebnf</code>, or <code>json-schema</code>.  If no output path is given, the grammar is written to stdout.</p>
+
+      <h4>86.8 <code>seedc prove</code></h4>
+      <pre><code>seedc prove &lt;SOURCE&gt; [-p &lt;PROPERTY&gt;]</code></pre>
+      <p>Property may be <code>no-deadlock</code>, <code>memory-safety</code>, <code>taint-safety</code>, or <code>all</code> (default).</p>
+    </div>
+  </section>
+
+  <!-- ── Chapter 87: Virtual Machine (seedvm) ── -->
+  <section id="ch87">
+    <h3 class="chapter-title">87. Virtual Machine (seedvm)</h3>
+    <div class="placeholder">
+      <p>
+        The <code>seedvm</code> binary executes compiled <code>.aslb</code>
+        bytecode modules.  It provides deterministic execution, instruction
+        tracing, and proof generation.
+      </p>
+
+      <h4>87.1 Global Options</h4>
+      <table>
+        <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>-v</code>, <code>-vv</code>, <code>-vvv</code></td><td>Verbosity: info, debug, trace</td></tr>
+          <tr><td><code>-h</code>, <code>--help</code></td><td>Print help</td></tr>
+          <tr><td><code>-V</code>, <code>--version</code></td><td>Print version</td></tr>
+        </tbody>
+      </table>
+
+      <h4>87.2 <code>seedvm run</code></h4>
+      <pre><code>seedvm run &lt;MODULE&gt; [OPTIONS]</code></pre>
+      <table>
+        <thead><tr><th>Option</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>-s</code>, <code>--seed &lt;SEED&gt;</code></td><td>Deterministic PRNG seed (default 0).</td></tr>
+          <tr><td><code>--max-stack &lt;DEPTH&gt;</code></td><td>Maximum operand stack depth (default 4096).</td></tr>
+        </tbody>
+      </table>
+
+      <h4>87.3 <code>seedvm trace</code></h4>
+      <p>Executes with full instruction tracing; same options as <code>run</code>.  Outputs the schedule trace.</p>
+
+      <h4>87.4 <code>seedvm prove</code></h4>
+      <pre><code>seedvm prove &lt;MODULE&gt; [OPTIONS]</code></pre>
+      <table>
+        <thead><tr><th>Option</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>-s</code>, <code>--seed &lt;SEED&gt;</code></td><td>PRNG seed.</td></tr>
+          <tr><td><code>-o</code>, <code>--output &lt;PATH&gt;</code></td><td>Write proof artifact to file; default stdout.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── Chapter 88: Language Server, Formatter, and Debug Adapter ── -->
+  <section id="ch88">
+    <h3 class="chapter-title">88. Language Server, Formatter, and Debug Adapter</h3>
+    <div class="placeholder">
+
+      <h4>88.1 Language Server (seedls)</h4>
+      <p>
+        The language server implements the Language Server Protocol (LSP)
+        over stdio.  It provides real‑time diagnostics via
+        <code>seedc::compile</code>, completions for keywords and
+        section identifiers, hover documentation, and stubs for
+        go‑to‑definition, references, rename, and semantic tokens.
+      </p>
+
+      <h4>88.2 Formatter (seedfmt)</h4>
+      <pre><code>seedfmt [SOURCE] [OPTIONS]</code></pre>
+      <table>
+        <thead><tr><th>Option</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>-o</code>, <code>--output &lt;PATH&gt;</code></td><td>Write formatted output to file instead of in‑place.</td></tr>
+          <tr><td><code>-c</code>, <code>--check</code></td><td>Check only: exit non‑zero if formatting would change the file.</td></tr>
+          <tr><td><code>--indent-width &lt;N&gt;</code></td><td>Spaces per indent (default 4).</td></tr>
+          <tr><td><code>--tabs</code></td><td>Use tabs instead of spaces.</td></tr>
+          <tr><td><code>--max-width &lt;N&gt;</code></td><td>Maximum line width (default 100).</td></tr>
+        </tbody>
+      </table>
+      <p>
+        If <code>SOURCE</code> is <code>-</code> or omitted,
+        <code>seedfmt</code> reads from stdin and writes to stdout.
+        Otherwise it formats the file in place.
+      </p>
+
+      <h4>88.3 Debug Adapter (seeddbg)</h4>
+      <p>
+        The debug adapter implements the Debug Adapter Protocol (DAP) over
+        stdio.  It supports conditional breakpoints, log points,
+        step‑in/step‑out/next/continue, threads, stack traces, scopes
+        (Locals and Memory Layers), and variable inspection.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Chapter 89: Package Manager (seedpkg) ── -->
+  <section id="ch89">
+    <h3 class="chapter-title">89. Package Manager (seedpkg)</h3>
+    <div class="placeholder">
+      <p>
+        <code>seedpkg</code> manages ASL packages: install, publish,
+        search, add, remove, init, login, and logout.
+      </p>
+
+      <h4>89.1 Global Options</h4>
+      <table>
+        <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>-v</code>, <code>-vv</code>, <code>-vvv</code></td><td>Verbosity: warn, info, debug.</td></tr>
+        </tbody>
+      </table>
+
+      <h4>89.2 Subcommands</h4>
+      <table>
+        <thead><tr><th>Command</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>install &lt;PACKAGE&gt; [--registry &lt;URL&gt;] [--dry-run]</code></td><td>Install a package from the registry.  Version may be given with <code>@</code>.</td></tr>
+          <tr><td><code>publish [--path &lt;PATH&gt;] [--registry &lt;URL&gt;] [--token &lt;TOKEN&gt;] [--dry-run]</code></td><td>Publish a package to the registry.  Requires a <code>Seed.toml</code>.</td></tr>
+          <tr><td><code>search &lt;QUERY&gt; [--limit &lt;N&gt;]</code></td><td>Search the registry.</td></tr>
+          <tr><td><code>add &lt;PACKAGE&gt; [VERSION_REQ]</code></td><td>Add a dependency to <code>Seed.toml</code>.</td></tr>
+          <tr><td><code>remove &lt;PACKAGE&gt;</code></td><td>Remove a dependency.</td></tr>
+          <tr><td><code>init [-n &lt;NAME&gt;] [--path &lt;PATH&gt;]</code></td><td>Create a new <code>Seed.toml</code> manifest.</td></tr>
+          <tr><td><code>login --registry &lt;URL&gt; --token &lt;TOKEN&gt;</code></td><td>Store authentication token.</td></tr>
+          <tr><td><code>logout</code></td><td>Remove stored token.</td></tr>
+        </tbody>
+      </table>
+
+      <h4>89.3 Lock File</h4>
+      <p>
+        <code>seedpkg</code> produces a <code>Seed.lock</code> file for
+        reproducible builds, recording the exact version and checksum of
+        every dependency.  This file should be committed to version
+        control.
+      </p>
+    </div>
+  </section>
+</section>
+
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <!-- APPENDICES -->
 <!-- ═══════════════════════════════════════════════════════════════════ -->
