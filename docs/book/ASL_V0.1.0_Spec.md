@@ -1,8 +1,7 @@
 Atonomoous Systemms Language — Specification v0.1.0
 ASL-SPEC-0.1.0 | Edition 2026 | Status: Draft for Review
 
----BEGIN AGENT-SEED v0.1.0--
-@AGENT-SEED/0.1.0  -- Author -- Damain Peter Ramsajan
+@Autonomous Systems Lanuage/0.1.0  -- Author -- Damain Peter Ramsajan
 
 ╔══════════════════════════════════════════════════════════════════════╗
 ║ §META-SEED — Unified Agentic Language & Virtual ISA                ║
@@ -6968,3 +6967,209 @@ Effect rows remain for static effect tracking and capability typing, but they ar
 All other parts of the spec remain unchanged; earlier addenda are adjusted to conform to these resolutions.
 
 End of specification addendum.
+
+
+
+
+
+
+
+# ASL ARCHITECTURE UPGRADE —> 1.0.1
+Version: v0.1.0-asl-upgrade-1
+Date: 14 May 2026
+Base Architecture: AgentSeed Language v0.1.0, AgentSeed Spec V15
+Status: Formal specification of five language upgrades
+Integrity Hash: c8d9e0f1-a2b3-4c5d-e6f7-a8b9c0d1e2f3
+
+Existing Gaps in v0.1.0
+No ZK proof integration — the Computation monad has five fields; no proof field exists
+
+No containment verification — seedvm has not been deductively verified in Dafny under havoc oracle semantics
+
+No cognitive-executive separation — ASL agents can reason and act in the same function
+
+No charter-based fiscal boundary — no language-level budget caps in satoshis
+
+No oracle-poisoning-specific defence — taint analysis tracks data source trust but lacks specific knowledge-graph integrity verification
+
+ FIVE ARCHITECTURE UPGRADES
+Upgrade 1: The proof Field — Cryptographic Verifiability
+Status: Not present in ASL v0.1.0
+Priority: Critical — gateway to the Darmiyan decision marketplace
+Source: NANOZK (Mar 2026), zkAgent (May 2026), Jolt Atlas (Feb 2026), Lemma x402 (Apr 2026)
+
+Specification:
+
+The Computation monad gains a sixth field:
+
+text
+proof: ProofMeta
+Where ProofMeta is:
+
+rust
+struct ProofMeta {
+    proof_type: ProofType,        // None | DeterministicReplay | ZK_Layerwise | TEE_Attestation | ReceiptHMAC
+    proof_data: Option<Bytes>,    // The cryptographic proof (empty for None)
+    proof_verified: bool,         // Has this proof been independently verified?
+    proof_verifier: Option<AgentId>, // Identity of the verifying agent
+    proof_timestamp: Timestamp,   // When the proof was generated
+}
+The infer<T> expression gains a fifth parameter:
+
+seed
+infer<MyStruct>(
+    model: route::select(task),
+    prompt: p,
+    schema: derive_schema<MyStruct>(),
+    budget: think::deep,
+    proof: zk::nanozk     // ← New parameter
+)
+The discharge block gains a fifth threshold check:
+
+seed
+discharge result with {
+    confidence: 0.85,
+    taint: 0.1,
+    budget: remaining,
+    capability: held,
+    proof_verified: true   // ← New threshold
+} {
+    synthesize(result)
+}
+If proof_type is None, the proof_verified threshold is automatically false, and the discharge fails. This ensures that any inference whose output is economically committed must carry a cryptographic proof of correctness.
+
+Integration points:
+
+The NANOZK proving service generates layerwise ZK proofs for LLM inference (5.5KB per proof, 24ms verification time, ε < 1e⁻³⁷ soundness)
+
+The zkAgent proving service generates one-shot transcript proofs for multi-step agent execution
+
+The Jolt Atlas prover generates lookup-based ZK proofs for ONNX models
+
+Tiered verification: agents select proof_type based on economic value — HMAC receipts (<15ms) for interactive agents, NANOZK for high-value decisions, zkAgent for complete audit
+
+Upgrade 2: Containment Verification — Deductive Proof of seedvm Enforcement
+Status: Not present in ASL v0.1.0
+Priority: High — provides mathematical guarantee invariant to AGI
+Source: Moon & Varshney (May 9, 2026), SEVerA (Apr 2026)
+
+Specification:
+
+The seedvm runtime shall be deductively verified in Dafny under havoc oracle semantics:
+
+Model the AI as a havoc oracle. The AI is an unconstrained adversary ranging over the entire typed action space — it can propose any action consistent with ASL's type system.
+
+Define the boundary policy. The boundary policy is the set of rules enforced by the discharge gate: confidence ≥ θ_c, taint ≤ τ_max, budget > 0, capability token held, proof verified. Additionally, the corrigibility heads (U1–U5) constitute boundary policies that cannot be violated.
+
+Prove forward-simulation refinement. For every possible AI output (every action in the typed action space), the discharge gate either (a) blocks the action and returns a Rejected computation, or (b) permits the action only if all five threshold conditions and all five corrigibility head conditions are satisfied.
+
+Mechanize the proof in Dafny. The proof is machine-checkable and distributed with every seedvm release. A CI/CD pipeline automatically re-verifies the proof on every commit.
+
+The guarantee: The containment proof is invariant to model capability. Even a superintelligent AI cannot bypass the discharge gate because the proof does not depend on the AI being aligned — it depends on the framework being correct, and the framework's correctness is mathematically proven.
+
+Specification:
+
+Add a reason keyword that produces a Reasoned<T> type:
+
+seed
+let analysis = reason<MarketAnalysis>(
+    data: market_data,
+    using: think::deep
+);
+// analysis: Reasoned<MarketAnalysis>
+// Cannot execute actions from within reason block
+A Reasoned<T> can only be converted to an Action<T> through a validate block:
+
+seed
+let action = validate analysis with {
+    validator: independent_verifier,
+    policy: trading_policy
+};
+// action: Action<MarketAnalysis>
+// Now can be used in perform block
+The reason block is structurally prevented from executing any perform, spend, delegate, or escalate operation. It can only produce a value. The validate block is executed by an independent agent (or human principal) who checks the reasoning before authorizing the action. This provides the same guarantee as Parallax's Cognitive-Executive Separation — the reasoning system cannot execute actions — but enforced at the language level rather than the process level.
+
+Integration with existing corrigibility: The five-head monitor already prevents dangerous actions. Cognitive-Executive Separation provides defence-in-depth: even if all five corrigibility heads were somehow compromised, the reason/validate barrier would prevent the reasoning system from directly executing actions.
+
+Upgrade 4: Charter Integration — Fiscal Discipline at the Language Level
+Status: Not present in ASL v0.1.0
+Priority: Medium — essential for autonomous economic agents handling real money
+Source: Sovereign-OS (Mar 14, 2026)
+
+Specification:
+
+Add a charter block that declares the agent's fiscal constitution:
+
+seed
+agent TradingAgent stratum: S1 {
+    charter {
+        mission: "Execute arbitrage trades across DEXs",
+        budget_cap: 1_000_000_sats,       // Maximum total spend
+        daily_burn_limit: 100_000_sats,   // Maximum spend per day
+        profitability_floor: 0.02,        // Minimum required return (2%)
+        allowed_counterparties: [verified_dexes],
+        require_audit: true
+    }
+    
+    fn execute_trade() -> Computation<TradeReceipt> {
+        // Every spend, delegate, or perform is checked against the charter
+        // at compile time AND runtime
+    }
+}
+The charter block is enforced by:
+
+Compile-time: The compiler verifies that no code path can exceed budget caps
+
+Runtime: The seedvm tracks cumulative spend and blocks any operation that would exceed limits
+
+Audit: Every charter-relevant action produces a charter-audit entry in the provenance log, signed with SHA-256
+
+The charter can only be amended through the evolution gating process (P7): adversarial simulation and two-party human approval.
+
+Integration with capability tokens: The charter operates alongside capability tokens. A capability token authorizes a specific type of action; the charter limits the aggregate volume of those actions. An agent may hold a spend capability but be charter-limited to 100,000 sats per day.
+
+Upgrade 5: Oracle Poisoning Defence — Knowledge Graph Integrity Verification
+Status: Partially present via taint analysis; specific KG defence missing
+Priority: Emerging — the Oracle Poisoning paper (May 10, 2026) proves this is urgent
+Source: Oracle Poisoning (May 10, 2026), NeuroTaint (Apr 25, 2026), Guardians (Jan 2026)
+
+Specification:
+
+Add a verify_integrity gate for knowledge graph queries:
+
+seed
+let graph_data = query_knowledge_graph(query);
+let verified_data = verify_integrity graph_data with {
+    expected_hash: content_hash(KG_snapshot),
+    zk_proof: kg_integrity_proof,
+    min_confidence: 0.95
+};
+The verify_integrity gate checks:
+
+Content hash: Does the returned data match the content-addressed hash of the knowledge graph snapshot?
+
+ZK integrity proof: Has the knowledge graph generated a cryptographic proof that the returned data is consistent with the committed state?
+
+Source diversity: Has the same query been served by multiple independent knowledge graph nodes with matching results?
+
+If verify_integrity fails, the Computation's taint score is elevated to 1.0 (maximum), and the discharge gate blocks commitment regardless of other thresholds.
+
+Integration with NeuroTaint semantics: Extend ASL's taint model from categorical (Clean/Agnostic/Tainted) to include:
+
+taint_source: The origin of the data (knowledge graph, user input, external API, agent memory)
+
+taint_transform: Has the data been semantically transformed by the agent's reasoning? (raw, summarized, synthesized, verified)
+
+taint_causal: Did the tainted data causally influence the decision? (direct, indirect, considered-but-rejected)
+
+This provides fine-grained taint tracking that matches NeuroTaint's findings — agents can use tainted data for context without letting it causally determine high-stakes decisions.
+
+5. GAP ANALYSIS
+Gap	Current State	Target State	Required Breakthrough
+G1: Proof Field	Computation monad has 5 fields	6 fields with ProofMeta; mandatory for economic discharge	NANOZK/zkAgent API integration
+G2: Containment Verification	No deductive proof of seedvm enforcement	Dafny-verified refinement proof; machine-checkable guarantee	Generalize PocketFlow proof to ASL type system
+G3: Cognitive-Executive Separation	Agents can reason and act in same function	reason/validate language construct; structural barrier	None — Parallax proves the pattern
+G4: Charter Integration	No fiscal discipline at language level	charter block with compile-time and runtime enforcement	Sovereign-OS proves the pattern
+G5: Oracle Poisoning Defence	Taint tracking without KG integrity verification	verify_integrity gate; content-addressed KG queries; ZK integrity proofs	Extend NeuroTaint to real-time enforcement
+6. ADDENDUM SUMMARY
+This addendum establishes the formal specification for five ASL language upgrades, grounded in a comprehensive competitive landscape analysis of the last 90 days.
