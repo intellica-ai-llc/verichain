@@ -29,9 +29,9 @@ jobs:
             asset_name: seed-windows-x64.exe
 
     steps:
-            - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
+      - uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
 
       - name: Build release binary
         env:
