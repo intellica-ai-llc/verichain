@@ -7164,6 +7164,8 @@ taint_causal: Did the tainted data causally influence the decision? (direct, ind
 
 This provides fine-grained taint tracking that matches NeuroTaint's findings — agents can use tainted data for context without letting it causally determine high-stakes decisions.
 
+The seedvm runtime MUST take a checkpoint of the downstream agent’s state before speculatively passing an unverified Uncertain<T>. If the upstream proof fails (probability ≤ 10⁻³⁷ for NANOZK), the downstream state MUST be rolled back to the checkpoint. The checkpoint is stored in memory; disk persistence is only required when speculation spans a DP‑Store commit boundary.
+
 5. GAP ANALYSIS
 Gap	Current State	Target State	Required Breakthrough
 G1: Proof Field	Computation monad has 5 fields	6 fields with ProofMeta; mandatory for economic discharge	NANOZK/zkAgent API integration
@@ -7173,3 +7175,401 @@ G4: Charter Integration	No fiscal discipline at language level	charter block wit
 G5: Oracle Poisoning Defence	Taint tracking without KG integrity verification	verify_integrity gate; content-addressed KG queries; ZK integrity proofs	Extend NeuroTaint to real-time enforcement
 6. ADDENDUM SUMMARY
 This addendum establishes the formal specification for five ASL language upgrades, grounded in a comprehensive competitive landscape analysis of the last 90 days.
+
+
+
+
+
+ASL SPECIFICATION — ADDENDUM 2
+Version: v0.2.0-addendum-2
+Date: 15 May 2026
+Status: Addendum to ASL‑SPEC‑0.1.0 — New Language Constructs
+Base Spec: ASL_V0.1.0_Spec.md
+Author: Damian Peter Ramsajan
+Integrity Hash: a9b8c7d6‑e5f4‑43a2‑b1c0‑d9e8f7a6b5c4
+
+text
+╔══════════════════════════════════════════════════════════════════════╗
+║ §META‑ADDENDUM — v0.2.0 Performance & Verifiability Extensions       ║
+╚══════════════════════════════════════════════════════════════════════╝
+text
+§META-ADDENDUM
+  yaml
+  addendum-id: uuid:3c4d5e6f-7a8b-9c0d-1e2f-34567890abcd
+  addendum-type: language-extension
+  base-spec: ASL-SPEC-0.1.0
+  edition: 2026
+  stability: draft-for-review
+  formalism-level: progressive
+  compliance: ISO/IEC 5230:2029/Final
+  runtime: seed-vm v5.0
+  # New feature flags
+  proof-carrying-computation: true   # NEW v0.2.0
+  speculative-execution: true        # NEW v0.2.0
+  dynamic-charter-enforcement: true  # NEW v0.2.0
+  taint-aware-strategy-suppression: true  # NEW v0.2.0
+text
+╔══════════════════════════════════════════════════════════════════════╗
+║ §P-CALC — Proof‑Carrying Computation                                ║
+╚══════════════════════════════════════════════════════════════════════╝
+§P-CALC — Rationale
+The infer<T> expression in v0.1.0 returns Uncertain<T> with a probability interval, but provides no cryptographic guarantee that the claimed model produced the output. An agent can substitute a cheaper model, use a cached response, or suffer an adversarial model-swap — all while producing a valid-looking Uncertain<T>. Proof‑Carrying Computation closes this gap by adding a mandatory cryptographic proof to every inference whose result is economically committed through the discharge gate.
+
+The design draws on four decades of Proof‑Carrying Code research, the NANOZK layerwise proof system (March 2026), zkAgent one-shot transcript proofs, Jolt Atlas lookup-based zkML, and the Lemma x402 reference implementation of ZK proofs embedded in payment headers.
+
+§P-CALC — ProofMeta Type Definition
+text
+ebnf
+proof_type ::= "ProofType::None"
+             | "ProofType::NanoZK"
+             | "ProofType::ZkAgent"
+             | "ProofType::JoltAtlas"
+             | "ProofType::ReceiptHMAC"
+             | "ProofType::DeterministicReplay"
+             | "ProofType::TEEAttestation"
+
+proof_meta ::= "ProofMeta" "{"
+    "proof_type"     ":" proof_type ","
+    "proof_data"     ":" "Option<Bytes>" ","
+    "proof_verified" ":" "bool" ","
+    "proof_verifier" ":" "Option<AgentId>" ","
+    "proof_timestamp":"Timestamp"
+"}"
+§P-CALC — Extended infer<T> Expression
+The infer<T> expression gains a fifth mandatory parameter proof and an optional sixth parameter speculate. The compiler rejects any infer<T> at stratum S1 and above that omits the proof parameter.
+
+text
+ebnf
+infer_expression ::= "infer" "<" type ">" "("
+    "model"   ":" model_selector ","
+    "prompt"  ":" expression ","
+    ["schema" ":" "derive_schema" "<" type ">" "(" ")" ","]
+    ["budget" ":" think_depth ","]
+    ["timeout" ":" duration_literal ","]
+    "proof"   ":" proof_selector ","
+    ["speculate" ":" integer_literal]
+")"
+
+proof_selector ::= "zk::nanozk"
+                 | "zk::zkagent"
+                 | "zk::jolt_atlas"
+                 | "receipt::hmac"
+                 | "replay::deterministic"
+                 | "tee::attestation"
+                 | "ProofType::None"
+
+model_selector ::= …  # unchanged from v0.1.0
+think_depth    ::= …  # unchanged from v0.1.0
+Example
+seed
+let prediction = infer<PriceDirection>(
+    model: route::select(task::price_discovery),
+    prompt: build_query(market),
+    schema: derive_schema<PriceDirection>(),
+    budget: think::deep,
+    proof: zk::nanozk,
+    speculate: 2
+);
+// prediction: Uncertain<PriceDirection>
+// prediction.proof: ProofMeta { proof_type: NanoZK, … }
+§P-CALC — Discharge Gate Extension
+The discharge block gains a fifth threshold check. In v0.1.0 the gate checked confidence, taint, budget, and capabilities. In v0.2.0 it additionally checks proof_verified.
+
+text
+discharge result with {
+    confidence: 0.85,
+    taint: 0.10,
+    budget: remaining,
+    capability: held,
+    proof_verified: true   // NEW v0.2.0
+} {
+    synthesize(result)
+}
+If proof_type is ProofType::None at the time of discharge, the proof_verified field is automatically false and the discharge rejects the computation. This is a compile‑time enforced invariant at stratum S1 and above.
+
+§P-CALC — Proof Verification Tier Selection
+Agents may select verification tiers based on the economic value of the decision:
+
+Tier	Proof Type	Latency	Security	Use Case
+T1	ReceiptHMAC	<15 ms	94.2 % detection	Interactive agents, high‑frequency trading
+T2	DeterministicReplay	~100 ms	100 % detection, 0 % false positive	Consensus‑speed verification
+T3	NanoZK	~24 ms	ε < 1e⁻³⁷ soundness	High‑value decisions, regulatory compliance
+T4	ZkAgent	~minutes	Full pipeline + tool interaction	Complete agent audit, dispute resolution
+The runtime always records the proof type and data in the provenance log, regardless of which tier was selected. This ensures that even T1‑verified decisions carry an auditable record of which verification was performed.
+
+§P-CALC — Keyword Additions
+The following keywords are added to the S1 lexicon:
+
+text
+# S1 — Proof-carrying computation (NEW v0.2.0)
+proof, ProofMeta, ProofType, NanoZK, ZkAgent, JoltAtlas,
+ReceiptHMAC, DeterministicReplay, TEEAttestation
+text
+╔══════════════════════════════════════════════════════════════════════╗
+║ §S-SPEC — Speculative Execution with Optimistic Proof Deferral       ║
+╚══════════════════════════════════════════════════════════════════════╝
+§S-SPEC — Rationale
+In a multi‑step agent pipeline (scout → analyst → risk‑assessor → executor), each stage must wait for the previous stage’s NANOZK proof to be verified on‑chain before proceeding. This serialisation adds 60–120 seconds to a 3‑step pipeline. Speculative execution passes the Uncertain<T> result downstream before the proof is verified, overlapping computation with cryptographic verification. If the proof later fails, the speculative work is rolled back; the soundness of NANOZK (ε < 1e⁻³⁷) makes this a rare event.
+
+The design draws on the Speculative Actions framework (April 2026), B‑PASTE beam‑aware speculation, Safe Programmable Speculative Parallelism (PLDI 2010), and the AgenC optimistic proof‑deferral system (January 2026).
+
+§S-SPEC — Formal Semantics
+A speculative execution is correct if its observable outcome is equivalent to a non‑speculative execution. The seedvm runtime enforces this by tracking a speculation_window per agent. When an upstream agent passes a value to a downstream agent before its proof is verified:
+
+The downstream agent begins execution immediately.
+
+The upstream agent’s proof verification proceeds asynchronously.
+
+If verification succeeds (probability > 1 − 10⁻³⁷), the downstream work is committed.
+
+If verification fails, the downstream work is rolled back via the seedvm checkpoint/restore mechanism, and the upstream agent’s Uncertain<T> is marked tainted.
+
+The speculation_window parameter controls how many pipeline stages ahead an agent may speculate:
+
+Window	Behaviour
+0	No speculation — sequential execution (v0.1.0 behaviour)
+1	One downstream stage may proceed speculatively
+2	Two downstream stages may proceed speculatively
+3+	Reserved; rejected by compiler at S1
+§S-SPEC — Syntax Extension
+The infer<T> expression accepts an optional speculate parameter. When omitted, the default is 0 (no speculation).
+
+text
+ebnf
+infer_expression ::= … ["," "speculate" ":" integer_literal] ")"
+Example
+seed
+// Scout: infer with speculation window of 2
+let signal = infer<PriceSignal>(
+    model: route::select(task::price_discovery),
+    prompt: build_query(market),
+    schema: derive_schema<PriceSignal>(),
+    budget: think::fast,
+    proof: zk::nanozk,
+    speculate: 2   // allows analyst AND risk-assessor to proceed
+);
+§S-SPEC — Compile‑Time Enforcement
+The compiler enforces the following invariants:
+
+speculate may only appear when proof is not ProofType::None.
+
+speculate values above 2 are rejected at stratum S1.
+
+speculate values above 0 are rejected at stratum S0 (sandboxed agents may not speculate).
+
+An agent that speculates must declare cap::speculative_execution in its capability clause.
+
+§S-SPEC — Keyword Additions
+text
+# S1 — Speculative execution (NEW v0.2.0)
+speculate, speculation_window
+text
+╔══════════════════════════════════════════════════════════════════════╗
+║ §C-DYN — Dynamic Charter Enforcement                                 ║
+╚══════════════════════════════════════════════════════════════════════╝
+§C-DYN — Rationale
+v0.1.0 charters specify static fiscal boundaries (budget_cap, daily_burn_limit). These are adequate for stable environments but suboptimal when an agent’s performance changes rapidly — a winning strategy should scale its position size, while a losing strategy should contract. Dynamic charters allow position limits to adjust based on trailing performance data without human intervention, while remaining bounded by hard caps that cannot be exceeded.
+
+The design draws on the ATLAS Adaptive‑OPRO technique (May 2026), AlphaCrafter’s Miner‑Screener‑Trader pipeline feedback, and Kelly‑criterion position‑sizing frameworks.
+
+§C-DYN — Charter Extension
+An agent’s charter block may now include a dynamic_position sub‑block. This block defines how position limits adjust based on observed performance.
+
+text
+ebnf
+charter_def ::= "charter" "{"
+    "mission"               ":" string_literal ","
+    "budget_cap_sats"       ":" integer_literal ","
+    "daily_burn_limit_sats" ":" integer_literal ","
+    "profitability_floor"   ":" float_literal ","
+    ["allowed_counterparties" ":" "[" string_literal {"," string_literal} "]" ","]
+    ["require_audit" ":" boolean_literal ","]
+    ["dynamic_position" ":" dynamic_position_block ","]  -- NEW v0.2.0
+    ["dynamic_risk" ":" dynamic_risk_block ","]          -- NEW v0.2.0
+"}"
+
+dynamic_position_block ::= "{"
+    "kelly_fraction"   ":" float_literal ","   -- fraction of Kelly criterion to apply
+    "lookback_trades"  ":" integer_literal "," -- number of trailing trades to evaluate
+    "adjust_interval"  ":" duration_literal ","-- how often to recalculate
+    "min_position"     ":" integer_literal "," -- floor (sats), never go below this
+    "max_position"     ":" integer_literal     -- ceiling (sats), never exceed budget_cap_sats
+"}"
+
+dynamic_risk_block ::= "{"
+    "confidence_floor" ":" float_literal ","   -- minimum confidence for strategy to remain active
+    "taint_ceiling"    ":" float_literal ","   -- maximum taint before strategy pauses
+    "max_drawdown_pct" ":" float_literal ","   -- maximum allowable drawdown before strategy pauses
+    "recovery_window"  ":" duration_literal    -- how long a paused strategy waits before retry
+"}"
+Example
+seed
+agent PolymarketMaker {
+    charter {
+        mission: "Polymarket 5-min late-entry maker (BTC, ETH, SOL)",
+        budget_cap_sats: 500_000,
+        daily_burn_limit_sats: 50_000,
+        profitability_floor: 0.01,
+        require_audit: true,
+        dynamic_position: {
+            kelly_fraction: 0.25,
+            lookback_trades: 20,
+            adjust_interval: 5_minutes,
+            min_position: 10_000,
+            max_position: 200_000
+        },
+        dynamic_risk: {
+            confidence_floor: 0.75,
+            taint_ceiling: 0.20,
+            max_drawdown_pct: 0.15,
+            recovery_window: 30_minutes
+        }
+    }
+    // … agent body
+}
+§C-DYN — Enforcement Semantics
+Position sizing: At each adjust_interval, the seedvm runtime recalculates the allowed position size using the Kelly fraction applied to the trailing win rate and average profit/loss ratio from the last lookback_trades trades. The result is clamped to [min_position, max_position].
+
+Strategy suppression: If the trailing win rate falls below confidence_floor, or taint exceeds taint_ceiling, or drawdown exceeds max_drawdown_pct, the agent’s discharge gate automatically rejects all new positions for that strategy for the duration of recovery_window. After the window expires, the agent resumes with reduced position size (50 % of the previous limit) and scales back up if performance recovers.
+
+Hard ceiling: No dynamic adjustment may ever exceed budget_cap_sats or daily_burn_limit_sats. These are compile‑time constants.
+
+Provenance logging: Every dynamic adjustment is recorded in the provenance log with the formula used, the input data (win rate, profit/loss), and the resulting position limit. This makes all strategy adjustments auditable.
+
+§C-DYN — Keyword Additions
+text
+# S1 — Dynamic charter enforcement (NEW v0.2.0)
+dynamic_position, kelly_fraction, lookback_trades, adjust_interval,
+min_position, max_position, dynamic_risk, confidence_floor,
+taint_ceiling, max_drawdown_pct, recovery_window
+text
+╔══════════════════════════════════════════════════════════════════════╗
+║ §T-SUPP — Taint‑Aware Strategy Suppression                           ║
+╚══════════════════════════════════════════════════════════════════════╝
+§T-SUPP — Rationale
+The Oracle Poisoning paper (Kereopa‑Yorke et al., May 10, 2026) demonstrated that every tested LLM agent blindly trusts a corrupted knowledge graph 100 % of the time at moderate attacker sophistication, with 269 of 270 valid trials accepting fabricated security claims under directed queries. v0.1.0’s taint analysis tracks whether data sources are Clean, Agnostic, or Tainted, but does not automatically suspend strategies when taint exceeds a threshold. This section adds taint‑aware strategy suppression — a mechanism that pauses trading when data integrity is compromised.
+
+The design extends the NeuroTaint framework (April 2026) with three additional taint dimensions, and integrates with the verify_integrity gate.
+
+§T-SUPP — Extended Taint Model
+The v0.1.0 taint model is extended from a single categorical field to a four‑dimensional structure:
+
+text
+ebnf
+taint_meta ::= "TaintMeta" "{"
+    "taint_level"    ":" taint_level ","      -- Clean | Agnostic | Tainted (v0.1.0)
+    "taint_source"   ":" taint_source ","     -- NEW v0.2.0
+    "taint_transform":" taint_transform ","    -- NEW v0.2.0
+    "taint_causal"   ":" taint_causal         -- NEW v0.2.0
+"}"
+
+taint_level ::= "Clean" | "Agnostic" | "Tainted"
+
+taint_source ::= "KnowledgeGraph"
+               | "UserInput"
+               | "ExternalAPI"
+               | "AgentMemory"
+               | "Federated"
+
+taint_transform ::= "Raw"
+                  | "Summarized"
+                  | "Synthesized"
+                  | "Verified"
+
+taint_causal ::= "Direct"        -- tainted data directly influenced the decision
+               | "Indirect"      -- tainted data was in the pipeline but not decisive
+               | "ConsideredRejected" -- tainted data was evaluated and discarded
+§T-SUPP — Verify‑Integrity Gate
+text
+ebnf
+verify_integrity_expression ::= "verify_integrity" expression "with" "{"
+    "expected_hash" ":" expression ","
+    ["zk_proof" ":" expression ","]
+    "min_confidence" ":" float_literal
+"}"
+The verify_integrity gate checks three conditions before a knowledge‑graph query result is accepted:
+
+Content hash match: does the returned data match the content‑addressed hash of the knowledge‑graph snapshot?
+
+ZK integrity proof (optional): has the knowledge graph generated a cryptographic proof that the returned data is consistent with the committed Merkle root?
+
+Source diversity: has the same query been served by at least f+1 independent replicas with matching results?
+
+If any condition fails, the Computation’s taint is escalated to Tainted with taint_source: KnowledgeGraph, taint_transform: Raw, and taint_causal: Direct. The discharge gate then blocks commitment.
+
+§T-SUPP — Automatic Strategy Suppression
+When the dynamic_risk block’s taint_ceiling is exceeded, the seedvm runtime:
+
+Immediately rejects all discharge attempts for the affected strategy.
+
+Sets the strategy state to Suppressed(reason: TaintExceeded, until: now + recovery_window).
+
+Logs the suppression event to the provenance chain with a snapshot of the taint data that triggered it.
+
+After recovery_window expires, the agent resumes with taint reset to Agnostic and position size reduced to 50 % of the previous limit.
+
+Example
+seed
+let graph_data = query_knowledge_graph("BTC_5min_orderbook");
+let verified = verify_integrity graph_data with {
+    expected_hash: content_hash(BTC_ORDERBOOK_SNAPSHOT),
+    zk_proof: kg_integrity_proof,
+    min_confidence: 0.95
+};
+// verified: Uncertain<OrderBook>
+// If verification fails, taint is escalated and discharge blocks
+§T-SUPP — Keyword Additions
+text
+# S1 — Taint-aware suppression (NEW v0.2.0)
+verify_integrity, TaintMeta, taint_source, taint_transform,
+taint_causal, KnowledgeGraph, UserInput, ExternalAPI,
+AgentMemory, Federated, Raw, Summarized, Synthesized, Verified,
+Direct, Indirect, ConsideredRejected
+text
+╔══════════════════════════════════════════════════════════════════════╗
+║ §INTEGR — Integration with Existing v0.1.0 Constructs               ║
+╚══════════════════════════════════════════════════════════════════════╝
+§INTEGR — Compatibility Matrix
+v0.1.0 Construct	v0.2.0 Interaction
+infer<T>	Gains mandatory proof parameter at S1+. Gains optional speculate parameter.
+discharge	Gains fifth threshold proof_verified.
+charter	Gains optional dynamic_position and dynamic_risk sub‑blocks.
+Computation<T>	Gains proof: ProofMeta field alongside uncertainty, taint, cost, capability, provenance.
+prov!	Automatically captures proof metadata when proof_type != None.
+capability clause	New capability cap::speculative_execution required for speculation.
+S0 stratum	All v0.2.0 constructs degrade gracefully: proof defaults to ProofType::None, speculate is rejected, dynamic_position is ignored.
+S1 stratum	Full enforcement of all v0.2.0 constructs.
+S2 stratum	Full enforcement; agents may propose dynamic_risk parameter changes as charter amendments.
+S3 stratum	Kernel‑level enforcement of proof verification and speculation limits.
+§INTEGR — Migration Path
+Existing v0.1.0 agents continue to compile under v0.2.0 with the following defaults:
+
+proof defaults to ProofType::None (S0 only; S1+ agents must add a proof parameter).
+
+speculate defaults to 0.
+
+Charters without dynamic_position retain static enforcement (backward‑compatible).
+
+Taint model is backward‑compatible: the three new fields default to ExternalAPI, Raw, and Indirect respectively.
+
+text
+╔══════════════════════════════════════════════════════════════════════╗
+║ §COMPAT — Summary of Additions                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+text
+§COMPAT
+  yaml
+  addendum-version: "0.2.0"
+  base-spec-version: "0.1.0"
+  new-keywords: 28
+  new-language-constructs:
+    - §P-CALC: ProofMeta type, extended infer<T>, discharge proof threshold
+    - §S-SPEC: speculate parameter, speculation_window
+    - §C-DYN: dynamic_position block, dynamic_risk block
+    - §T-SUPP: verify_integrity gate, extended taint model
+  backward-compatible: true
+  minimum-stratum-for-enforcement: S1
+  sandbox-behaviour: graceful-degradation
+  compiler-version: "seedc 15.1.0"
+  target-vm: "seedvm-5.1"
+This addendum extends ASL‑SPEC‑0.1.0 with four new language constructs. It does not replace any existing specification. All existing v0.1.0 programs remain valid under v0.2.0 with sensible defaults. The constructs are designed for stratum S1 and above; S0 agents degrade gracefully.
