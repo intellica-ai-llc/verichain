@@ -37,7 +37,7 @@ Status: **verified** = primary source opened; **partial** = source opened, claim
 | MinTRL ≈ (1.645/SR)² years for iid normal returns | derived | standard result; assumptions stated |
 | Chainguard ≈ $100M ARR (Jun 2026), 150+ customers, $3.5B valuation | secondary (Sacra estimate) | analog only |
 | Glosten–Milgrom, Kyle, Avellaneda–Stoikov, Almgren–Chriss, Kelly, PBO | established literature | not re-opened this session |
-| RFC 9942 (COSE Merkle tree proofs) referenced by RFC 9943 text | verified via RFC 9943 page | confirm at G1 |
+| RFC 9942 is referenced by RFC 9943 for verifiable-data-structure details (title and content not opened) | partial | read RFC 9942 at G1 |
 | C2SP tlog-tiles / tlog-checkpoint / tlog-cosignature formats | unverified | read at G1 |
 | Public witness-network onboarding for a new log | unverified | confirm at G3 |
 | ML-DSA / SLH-DSA Rust crate maturity and audit status | unverified | confirm at G1 |
