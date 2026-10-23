@@ -1,3 +1,0 @@
-$ seedc check examples/hello.seed
-? success
-`examples/hello.seed` passes all checks
