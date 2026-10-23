@@ -23,3 +23,7 @@
 - Added addendum H: objectives set by assistant per Damain's delegation; trading demoted from revenue to proof/learning track.
 - Amended ARC42 v7 (V13 tool provenance kinds), MAS v2 (M11–M13), ROADMAP, SOURCES.
 - AIUC-1 and NLnet page fetches were blocked on permission; recorded as unverified.
+
+## 2026-10-23 — G1 started
+- Damain approved objectives and specs.
+- Cargo workspace with `vc-core` (RFC 8785, SHA-256, chain rules) and `vc-log` (RFC 9162 tree, inclusion/consistency proofs); tests pass, incl. RFC 8785 example and CT 8-leaf reference roots; `spec/statement.schema.json` added.

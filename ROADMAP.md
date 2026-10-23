@@ -6,7 +6,7 @@ Rule: design gates first; no code before the G1 spec is approved by Damain.
 | Gate | Deliverable | Done when |
 |---|---|---|
 | G0 | Repo reset, four standard files, `docs/SOURCES.md` triaging every cited claim | claims marked verified / unverified / refuted |
-| G1 | ARC42 v7 and MAS v2 approved; Decision Primitive v2 schema frozen; test vectors (see ARC42 v7 Appendix A) written | Damain approves |
+| G1 | **In progress (specs approved 2026-10-23; vc-core + vc-log pass tests)** ARC42 v7 and MAS v2 approved; Decision Primitive v2 schema frozen; test vectors (see ARC42 v7 Appendix A) written | Damain approves |
 | G2 | Minimal Rust tile log: checkpoint, inclusion and consistency proofs | passes vectors; runs in <1 GB RAM on a 4 GB Chromebook |
 | G3 | Witness cosigning + split-view detection test | ≥2 independent witnesses |
 | G4 | COSE receipts + RFC 3161 / OpenTimestamps anchoring + verifier CLI | verifier passes vectors offline |

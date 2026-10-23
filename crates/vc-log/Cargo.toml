@@ -1,0 +1,13 @@
+[package]
+name = "vc-log"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "VeriChain Merkle log: RFC 9162-style tree hashing, inclusion and consistency proofs"
+
+[dependencies]
+vc-core = { path = "../vc-core" }
+sha2.workspace = true
+hex.workspace = true
+thiserror.workspace = true
+serde_json.workspace = true

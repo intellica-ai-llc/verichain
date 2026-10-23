@@ -1,0 +1,14 @@
+[package]
+name = "vc-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "VeriChain core: canonical JSON (RFC 8785), hashing, statement chain rules"
+
+[dependencies]
+sha2.workspace = true
+hex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_jcs.workspace = true
+thiserror.workspace = true
