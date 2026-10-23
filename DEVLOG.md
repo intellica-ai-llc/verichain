@@ -28,3 +28,8 @@
 - Damain approved objectives and specs.
 - Cargo workspace with `vc-core` (RFC 8785, SHA-256, chain rules) and `vc-log` (RFC 9162 tree, inclusion/consistency proofs); tests pass, incl. RFC 8785 example and CT 8-leaf reference roots; `spec/statement.schema.json` added.
 - G2 started: signed checkpoints (C2SP note format) with operator + witness-quorum verification and split-view check in `vc-log`; `vc-cose` COSE_Sign1 (Ed25519). All tests pass.
+
+## 2026-10-23 — Scope reversal: no cutting
+- Damain: build the entire VeriChain; first bring both ARC42s to production grade.
+- Wrote `VERICHAIN_ARC42_v8.md` (layers L0–L6, functional requirements, threat model, deployment, ADRs V14–V22, research gates R1–R6, legal gates L-1..L-7, gate map G1–G12) and `MAS_ARC42_v3.md` (hosted agents, strategy catalog, capital phases, external-capital mandates, gates S0–S4).
+- v7 and MAS v2 marked superseded; ROADMAP gates rewritten; SOURCES extended.

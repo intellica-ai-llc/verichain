@@ -1,8 +1,8 @@
 # VeriChain
 
-**Verifiable evidence for autonomous agents.** VeriChain records what an AI agent was authorized to do and what it did, in a witnessed, append-only, post-quantum-ready log that anyone can verify offline.
+**A platform where autonomous agents run, transact and are held accountable.** Everything an agent is authorized to do and does is recorded in a witnessed, append-only, post-quantum-ready log that anyone can verify offline. Agents run on VeriChain (strongest evidence) or beside it (gateway/signer).
 
-> Status: **design phase, no code yet.** The previous contents of this repository (an ASL toolchain copy and the v6 "agent economy" architecture) are preserved on branch `archive/pre-reset-2026-10-23`. The ASL language lives at https://github.com/agentseedlanguage-cpu/agentseed.
+> Status: **specs at production grade (v8 / MAS v3), awaiting approval; L0 code started** (`vc-core`, `vc-log`, `vc-cose` pass tests). The previous contents of this repository (an ASL toolchain copy and the v6 "agent economy" architecture) are preserved on branch `archive/pre-reset-2026-10-23`. The ASL language lives at https://github.com/agentseedlanguage-cpu/agentseed.
 
 ## Why
 Agents now act with money, data and authority, and most "audit trails" are self-signed logs that can be bypassed or rewritten. VeriChain aims to provide:
@@ -14,8 +14,8 @@ Agents now act with money, data and authority, and most "audit trails" are self-
 ## Documents
 | File | Purpose |
 |---|---|
-| `docs/arc42/VERICHAIN_ARC42_v7.md` | **VeriChain design baseline (v7 draft, for G1 approval)** |
-| `docs/arc42/MAS_ARC42_v2.md` | **Trading agents on VeriChain: reference tenant / dogfood (v2 draft)** |
+| `docs/arc42/VERICHAIN_ARC42_v8.md` | **VeriChain full-platform spec (v8 draft; v7 = superseded L0 baseline)** |
+| `docs/arc42/MAS_ARC42_v3.md` | **Agents on VeriChain: flagship tenant, strategies, capital phases (v3 draft; v2 superseded)** |
 | `ARCHITECTURE.md` | Short architecture summary and pointers |
 | `ROADMAP.md` | Design gates and commercial milestones |
 | `DEVLOG.md` | Dated log of decisions and findings |

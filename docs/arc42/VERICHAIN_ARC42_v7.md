@@ -1,3 +1,5 @@
+> **SUPERSEDED 2026-10-23 by `VERICHAIN_ARC42_v8.md` (full-scope, production-grade).** Retained as the detailed L0/baseline reference.
+
 # VeriChain — ARC42 v7 (design baseline for coding)
 
 Status: DRAFT for approval at gate G1 · Date: 2026-10-23 · Supersedes `docs/archive/VERICHAIN_ARC42_v6.md`

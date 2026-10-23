@@ -1,8 +1,8 @@
 # VeriChain — Architecture summary
 
-Authoritative specs (drafts, pending G1 approval):
-- `docs/arc42/VERICHAIN_ARC42_v7.md` — the product: witnessed, append-only, post-quantum-ready evidence log for agents.
-- `docs/arc42/MAS_ARC42_v2.md` — the reference tenant: trading agents (own capital) that generate verifiable track records.
+Authoritative specs (drafts, pending approval; v7 and MAS v2 are superseded baselines):
+- `docs/arc42/VERICHAIN_ARC42_v8.md` — the full platform: L0 evidence log, L1 identity/authority, L2 agent runtime, L3 assurance, L4 ordering/storage, L5 economy, L6 governance/compliance.
+- `docs/arc42/MAS_ARC42_v3.md` — the flagship tenant: agents running on VeriChain, strategy catalog, capital phases, external-capital mandates.
 Evidence and rationale: `docs/addenda/A–G`. Claim status: `docs/SOURCES.md`. Superseded v6 documents: `docs/archive/`.
 
 ## One-paragraph architecture

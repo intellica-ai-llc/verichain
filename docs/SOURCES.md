@@ -52,3 +52,15 @@ Status: **verified** = primary source opened; **partial** = source opened, claim
 | AIUC-1 certification requirements | unverified (fetch blocked) |
 | Agent observability market US$1.68B (2026) → US$8.62B (2031) | analyst figure, context only |
 | All revenue/price/ARR figures | assumptions (addendum H) |
+
+## Added for ARC42 v8 / MAS v3 (2026-10-23)
+| Claim | Status |
+|---|---|
+| ERC-8183: roles client/provider/evaluator; states Open, Funded, Submitted, Completed, Rejected, Expired; optional hooks; fee on completion only | verified from ERC text; page did not state draft/final status |
+| ERC-8004: Identity (ERC-721), Reputation (0-100 feedback with feedbackAuth), Validation registries; EVM singleton per chain | secondary (blog); status not stated |
+| IETF draft-asor-wimse-agent-delegation-chain-01 (Sept 2026, expires Mar 2027): JWT per RFC 9068, JCS, par_hash chain, attenuation rules, optional ML-DSA, status lists | verified from draft text; individual Internet-Draft |
+| Malachite: Rust Tendermint-based BFT library, Apache-2.0, "alpha", not externally audited, underlies Circle's Arc | verified from README |
+| Isolation guidance: Firecracker/Kata for hostile code, gVisor medium, containers low, WASM for stateless functions; startup/overhead figures | secondary (vendor blog); figures indicative |
+| x402 open HTTP-402 payment protocol (Coinbase-originated) | secondary; spec not opened |
+| C2SP tlog-checkpoint and signed-note formats | verified from specs (implemented in vc-log) |
+| GPU confidential-computing attestation maturity | secondary/unverified (research gate R4) |

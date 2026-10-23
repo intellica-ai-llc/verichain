@@ -1,3 +1,5 @@
+> **SUPERSEDED 2026-10-23 by `MAS_ARC42_v3.md` (full-scope, production-grade).** Retained as the detailed L0/baseline reference.
+
 # MAS — Multi-Agent Trading Systems on VeriChain — ARC42 v2 (design baseline for coding)
 
 Status: DRAFT for approval · Date: 2026-10-23 · Supersedes `docs/archive/MAS_ARC42_v6.md`
