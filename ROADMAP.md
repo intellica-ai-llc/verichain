@@ -22,6 +22,14 @@ Rule: design gates first; no code before the G1 spec is approved by Damain.
 | M3 | Compliance mappings (EU AI Act Art. 12, NIST agent guidance, SEC/FINRA) | reviewed by a practitioner |
 | M4 | Standards participation (SCITT agent-receipt profile) | draft or interop test accepted |
 
+## Financial objectives (assumptions; see addendum H)
+| Horizon | Objective | Kill / pivot |
+|---|---|---|
+| M3 | ≥10 conversations, ≥3 willing to pilot | <3 → revisit segment |
+| M6 | verifier published; ≥2 paid pilots | 0 paid → thesis review |
+| M12 | ~US$250k ARR base (≈10 × US$25k); stretch ≈ US$600k | <US$60k → change segment or stop |
+| Trading | learning goals only; capital cap min(5%, US$5k) | gate failure → stop strategy |
+
 ## Deferred
 ORCHID consensus, UBE/World ID, agent exchange, Lightning settlement, trading swarm.
 

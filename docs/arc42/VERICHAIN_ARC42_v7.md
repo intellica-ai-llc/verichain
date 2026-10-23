@@ -5,6 +5,7 @@ Evidence base: `docs/addenda/A–G`; claim status in `docs/SOURCES.md`. Anything
 
 ---
 ## 1. Introduction and goals
+> Financial objectives and revenue plan: `docs/addenda/H_financial_objectives_and_innovation.md` (evidence/assurance revenue; trading is not the revenue plan).
 
 ### 1.1 Purpose
 VeriChain is **verifiable evidence for autonomous agents**: a witnessed, append-only, post-quantum-ready log of what an agent was authorized to do and what it did, with offline verification, evidence packs for auditors/insurers/regulators, and a neutral verifier other vendors' receipts can be checked in.
@@ -107,7 +108,7 @@ COSE_Sign1; protected header: `alg`, `kid`, content type, CWT claims `iss` (issu
 ```json
 {
   "v": 2,
-  "kind": "intent | outcome | policy | delegation",
+  "kind": "intent | outcome | policy | delegation | artifact | attestation",
   "agent": {"id": "<did or key thumbprint>", "runtime": {"kind": "asl|gateway|signer|sdk", "version": "..."}},
   "seq": 41, "prev": "<sha256 of previous statement of this agent>",
   "ts": "2026-10-23T02:23:00Z",
@@ -174,6 +175,7 @@ Accept if: valid signature by a registered issuer key; schema valid; `seq` = las
 | V10 | Rust workspace; WASM verifier; SQLite index | footprint, safety, portability | build size/time on 4 GB machine managed via CI |
 | V11 | Ship gateway (C1) and signer (C2) before ASL hook | ASL v0.2.0 incomplete; faster adoption | ASL becomes the premium C2/C3 path |
 | V12 | Defer: ORCHID consensus, UBE/World ID, exchange, Lightning-first settlement, own trading P&L as revenue | unverified/unfit/legal-heavy (Addenda A, B, F) | revisit only with evidence |
+| V13 | Tool/artifact provenance profile: `artifact` (tool, MCP server, skill, model, config build digest) and `attestation` (vetting by a named party) statement kinds; gateway can verify or flag unsigned tools | no major MCP client verifies tool signatures natively; supply-chain provenance is a proven paying category (Addendum H P2) | validate with 2 design partners at M0 |
 
 ---
 ## 10. Quality requirements (measurable; targets to be validated at the stated gate)

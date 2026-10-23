@@ -109,6 +109,8 @@ Removed from v1: closing-window taker strategy; "guaranteed profit" language; cr
 | Geoblock | no orders if geoblock check fails or is stale |
 | Kill switch | operator or automatic (reconciliation mismatch beyond tolerance) cancels all orders and halts signer |
 
+Reward-competition caveat: LP-1 rewards are pro-rata by quoted size and spread score, so returns shrink as quoters join; treat reward income as an upside to be measured, not assumed.
+
 ### 5.4 Capital allocation
 Fixed per-strategy risk budgets at start (placeholder split, e.g., LP-1 majority, FC-1 minority, AR-1 zero until paper-proven). Reallocation uses shrinkage estimates with minimum sample sizes and **never** a trailing-20-trade metric. Minimum track-record math (i.i.d. normal, 95% confidence true Sharpe > 0): ≈ (1.645/SR)² years: SR 1 → ~2.7 y; SR 2 → ~8 months; SR 3 → ~4 months (Addendum F §3). Fat tails and many trials lengthen this.
 
@@ -149,6 +151,9 @@ Fixed per-strategy risk budgets at start (placeholder split, e.g., LP-1 majority
 | M08 | Capital allocation by shrinkage with minimum samples | short-window Sharpe is noise |
 | M09 | Stage gates with kill criteria | avoid self-deception |
 | M10 | ASL port later | ASL v0.2.0 incomplete |
+| M11 | Micro-live capital cap: lesser of 5% of liquid risk capital or US$5,000; objectives are learning, not return | trading cannot fund the company (Addendum H §1) |
+| M12 | Builder-fee trading terminal deferred until counsel review and paying evidence customers | custody/licensing/jurisdiction risk (Addendum H P7) |
+| M13 | AR-2 combinatorial/rebalancing arbitrage scanner: paper-only | opportunity documented in one study; leg risk and competition unmeasured |
 
 ---
 ## 10. Quality and acceptance requirements

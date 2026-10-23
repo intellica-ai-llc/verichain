@@ -41,3 +41,14 @@ Status: **verified** = primary source opened; **partial** = source opened, claim
 | C2SP tlog-tiles / tlog-checkpoint / tlog-cosignature formats | unverified | read at G1 |
 | Public witness-network onboarding for a new log | unverified | confirm at G3 |
 | ML-DSA / SLH-DSA Rust crate maturity and audit status | unverified | confirm at G1 |
+
+## Added in addendum H (2026-10-23)
+| Claim | Status |
+|---|---|
+| No major MCP client verifies tool signatures; 534 of 3,984 scanned skills critically vulnerable | secondary (search result), recheck before external use |
+| Polymarket builder fees up to 100 bps taker / 50 bps maker | partial (docs read in research); confirm current terms |
+| Combinatorial arbitrage ≈ US$40M realized on Polymarket | single paper, unverified |
+| NLnet NGI Zero Commons final call closed 1 Jun 2026 | secondary; live page fetch blocked |
+| AIUC-1 certification requirements | unverified (fetch blocked) |
+| Agent observability market US$1.68B (2026) → US$8.62B (2031) | analyst figure, context only |
+| All revenue/price/ARR figures | assumptions (addendum H) |

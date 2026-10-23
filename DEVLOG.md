@@ -18,3 +18,8 @@
 - Wrote `docs/arc42/VERICHAIN_ARC42_v7.md` and `docs/arc42/MAS_ARC42_v2.md`. Key changes vs v6: no own consensus; SCITT/tile-log/witness design; intent/outcome completeness; signer chokepoint (C2 without ASL); MAS rebuilt around maker/inventory control, forecast layer with limits outside the model, stage gates; trading removed from revenue assumptions.
 - Correction to Addendum B: the empirical favorite–longshot study shows ≥90¢ purchases earned ≈ +0.83¢/$ before fees, so the closing-window taker idea is edge ≈ 0–1¢ before fees (fees dominate), not the −8% I computed from the v6 doc's assumed 85% certainty.
 - Next: Damain reviews both specs; then G1 (freeze schema, write vectors), then code.
+
+## 2026-10-23 — Financial objectives and profit innovation
+- Added addendum H: objectives set by assistant per Damain's delegation; trading demoted from revenue to proof/learning track.
+- Amended ARC42 v7 (V13 tool provenance kinds), MAS v2 (M11–M13), ROADMAP, SOURCES.
+- AIUC-1 and NLnet page fetches were blocked on permission; recorded as unverified.
