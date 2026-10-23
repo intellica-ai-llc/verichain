@@ -33,3 +33,9 @@
 - Damain: build the entire VeriChain; first bring both ARC42s to production grade.
 - Wrote `VERICHAIN_ARC42_v8.md` (layers L0–L6, functional requirements, threat model, deployment, ADRs V14–V22, research gates R1–R6, legal gates L-1..L-7, gate map G1–G12) and `MAS_ARC42_v3.md` (hosted agents, strategy catalog, capital phases, external-capital mandates, gates S0–S4).
 - v7 and MAS v2 marked superseded; ROADMAP gates rewritten; SOURCES extended.
+
+## 2026-10-23 — Research round 3; specs v9 / v4
+- Withdrew solo-builder and calendar-speed assumptions (owner direction: multi-agent regimented factory).
+- Added Addenda I (earlier pass) and J (verified standards alignment, assurance path, financial objectives v2).
+- ARC42 v9: standards alignment §3.4, positioning §3.5, A2 verified-inference §4.5, factory §4.6 and Appendix G, ADRs V23–V30, research gate R7, G0.5.
+- MAS v4: LP-2 restricted to ≥15 min, FC-2/SV-1, resolution/manipulation rules, decisions M17–M21.

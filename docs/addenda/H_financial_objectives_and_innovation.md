@@ -1,3 +1,5 @@
+> **Partly superseded by Addendum J §3 (financial objectives v2).** P1–P9 and legal notes stand.
+
 # Addendum H — Financial objectives and profit innovations
 
 Date: 2026-10-23 · Status: DRAFT for approval · Author's note: Damain delegated "you set the financial objectives". Every number below is **my assumption**, not a forecast, and is revisable. Sources and verification status: `docs/SOURCES.md`.

@@ -1,9 +1,9 @@
 # VeriChain — Architecture summary
 
-Authoritative specs (drafts, pending approval; v7 and MAS v2 are superseded baselines):
-- `docs/arc42/VERICHAIN_ARC42_v8.md` — the full platform: L0 evidence log, L1 identity/authority, L2 agent runtime, L3 assurance, L4 ordering/storage, L5 economy, L6 governance/compliance.
-- `docs/arc42/MAS_ARC42_v3.md` — the flagship tenant: agents running on VeriChain, strategy catalog, capital phases, external-capital mandates.
-Evidence and rationale: `docs/addenda/A–G`. Claim status: `docs/SOURCES.md`. Superseded v6 documents: `docs/archive/`.
+Authoritative specs (drafts, pending approval; earlier versions are superseded; history in git):
+- `docs/arc42/VERICHAIN_ARC42_v9.md` — the full platform: L0 evidence log, L1 identity/authority, L2 agent runtime, L3 assurance, L4 ordering/storage, L5 economy, L6 governance/compliance.
+- `docs/arc42/MAS_ARC42_v4.md` — the flagship tenant: agents running on VeriChain, strategy catalog, capital phases, external-capital mandates.
+Evidence and rationale: `docs/addenda/A–J`. Claim status: `docs/SOURCES.md`. Superseded v6 documents: `docs/archive/`.
 
 ## One-paragraph architecture
 Agents (via a gateway, a policy-enforcing signer, or later the ASL runtime) submit signed **statements** (intent before an effect, outcome after) to a sequencer that appends them to a **tile-based Merkle log** and returns SCITT (RFC 9943) receipts. Signed **checkpoints** are cosigned by independent **witnesses** and time-anchored. An open **offline verifier** checks signatures, inclusion, witness quorum, anchors and **completeness** (orphan intents, sequence gaps) and reports declared **completeness (C0–C3)** and **assurance (A0–A3)** levels. Payloads stay off-log behind salted commitments.

@@ -2,10 +2,11 @@
 
 Rule: design gates first; no code before the G1 spec is approved by Damain.
 
-## Design and build gates (platform; full scope per ARC42 v8 Appendix F)
+## Design and build gates (platform; full scope per ARC42 v9 Appendix F)
 | Gate | Scope | Done when |
 |---|---|---|
 | G0 | Repo reset, standard files, SOURCES | done |
+| G0.5 | Engineering factory ready: roles, harness, CI gates, traceability, acceptance bundles (ARC42 v9 App. G) | factory re-derives `vc-log` end to end with independent vectors and differential tests |
 | G1 | Spec freeze: schema, vectors, requirements, threat model | **in progress** (vc-core, vc-log, vc-cose pass tests) |
 | G2 | Tile log + `vcd` sequencer + checkpoints | crash/limits tests; <1 GB RAM |
 | G3 | Witnesses + split-view detection | ≥2 independent witnesses |
@@ -28,15 +29,16 @@ Rule: design gates first; no code before the G1 spec is approved by Damain.
 | M3 | Compliance mappings (EU AI Act Art. 12, NIST agent guidance, SEC/FINRA) | reviewed by a practitioner |
 | M4 | Standards participation (SCITT agent-receipt profile) | draft or interop test accepted |
 
-## Financial objectives (assumptions; see addendum H)
+## Financial objectives v2 (assumptions; see addendum J §3)
 | Horizon | Objective | Kill / pivot |
 |---|---|---|
 | M3 | ≥10 conversations, ≥3 willing to pilot | <3 → revisit segment |
-| M6 | verifier published; ≥2 paid pilots | 0 paid → thesis review |
-| M12 | ~US$250k ARR base (≈10 × US$25k); stretch ≈ US$600k | <US$60k → change segment or stop |
-| Trading | learning goals only; capital cap min(5%, US$5k) | gate failure → stop strategy |
+| M6 | verifier published; ≥2 paid pilots; AARM mapping submitted; ≥1 external witness operator | 0 paid → thesis review |
+| M9 | hosted runtime beta with ≥2 design partners | none → revisit runtime go-to-market |
+| M12 | base ≈ US$500k ARR (evidence 250k + runtime 180k + packs 96k); stretch ≈ US$1.2M | <US$100k → change segment/mix |
+| Trading | learning goals only; capital cap per MAS M11 | gate failure → stop strategy |
 
-## MAS track — see `docs/arc42/MAS_ARC42_v3.md`
+## MAS track — see `docs/arc42/MAS_ARC42_v4.md`
 | Gate | Deliverable | Done when |
 |---|---|---|
 | T0 | Data pipeline + simulator; experiment registry; DSR/PBO tooling | reproducible backtest; validated against known fills |

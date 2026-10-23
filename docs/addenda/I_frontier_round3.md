@@ -1,0 +1,44 @@
+# Addendum I — Frontier research round 3: what changed and what we do about it
+
+Date: 2026-10-23 · Tags: `[V]` primary source read this session, `[S]` secondary (vendor blog/news/preprint), `[A]` assumption.
+Correction to earlier framing: VeriChain is **not** planned as a one-person build. The build system is a regimented **multi-agent software factory** with human orchestrators and verifiers (owner's direction). Capacity and timeline assumptions based on a solo developer are withdrawn from the specs.
+
+## 1. Engineering system (how we build the full vision)
+- Spec-driven agentic engineering is the current state of practice `[S: arXiv 2609.00252, conceptual synthesis, no validated empirical results]`. Its pieces: version-controlled specifications as the contract; humans as orchestrators/verifiers; agents deriving code/tests/docs from specs; **parallel candidates in separate git worktrees**; structured consultation instead of improvisation; **evidence-backed acceptance** (functional completeness, verification soundness, maintainability, rationale, auditability); **graduated autonomy**; persistent shared knowledge.
+- Our adaptation (ADR V23, ARC42 v9 App. G): ARC42 + `spec/requirements.md` are the specs; every change traces to a requirement ID; builder agents produce candidates; **independent verifier agents** (different prompts, and where possible different model families) attack them with property tests, differential tests against independent implementations, fuzzing and spec review; merges require an acceptance bundle; humans sign off security-critical modules (crypto, sandbox, signer, settlement) and legal-gated features; external audits before any assurance or funds claim.
+- New product opportunity P10: **verifiable software provenance for agent-built code** — the factory's own acceptance bundles are logged on VeriChain (dogfood) and can be offered as an evidence pack for customers who must show how AI-written code was verified.
+
+## 2. Standards landscape to align to (agent identity, authorization, commerce) `[S: NHIMG tracker, snapshot]`
+Published/stable: MCP (2026-07-28 revision) and MCP enterprise-managed authorization; A2A 1.0.1; OAuth RFCs 8693 (token exchange), 8707, 9728, 9396, 9449, 9700; AuthZEN Authorization API 1.0 (OpenID, Final); CIBA; Shared Signals/CAEP/RISC (revocation signals); SPIFFE/SPIRE; AP2 v0.2 (Google/FIDO); ISO/IEC 42001. Drafts: OAuth 2.1, Transaction Tokens, OAuth identity and authorization chaining (RFC Editor queue), WIMSE drafts incl. `draft-ietf-wimse-aims` and the agent delegation-chain draft we already adopt `[V]`; Verifiable Intent (Mastercard/FIDO, contributed). Government/guidance: NIST AI Agent Standards Initiative and NCCoE agent-identity concept paper, OWASP Top 10 for Agentic Applications and NHI Top 10, MAESTRO, MITRE ATLAS.
+Decisions: expose `vc-fge` through the **AuthZEN PDP API** (V24); use **SPIFFE-style workload identity** for hosted agents; consume **CAEP/SSF** events for revocation; map the threat model to OWASP agentic risks; interoperate with AP2/x402/Verifiable Intent in `vc-pay` (V26); track WIMSE.
+
+## 3. Logging regulation reality (EU AI Act Art. 12) `[S: Help Net Security summary]`
+Art. 12 requires automatic event logging over the system lifetime for high-risk systems; retention at least six months (Arts. 19/26); it does **not** say "tamper-proof" and does not fix format or fields; harmonised standards prEN 18229-1 and ISO/IEC DIS 24970 are still drafts. Implication: our selling point is *defensible* logs (silent alteration is detectable); we conform to the standards when final and publish a mapping. Dates from earlier research (Annex III Dec 2027, Annex I Aug 2028) stand `[S]`.
+
+## 4. Post-quantum
+COSE ML-DSA (draft-ietf-cose-dilithium) reached **RFC 9964, Proposed Standard** `[S: datatracker page text]`; draft algorithm ids were ML-DSA-44/65/87 = −48/−49/−50 (confirm against the RFC before freezing); sizes per FIPS 204: ML-DSA-65 public key 1,952 B, signature 3,309 B `[V]`. SLH-DSA for COSE is still an Internet-Draft (-09, July 2026) `[V]`. Decision (V25): hybrid Ed25519 + ML-DSA-65 on checkpoints now (per-checkpoint, not per-receipt); SLH-DSA root when its COSE draft finalizes.
+
+## 5. Verifiable computation (assurance A3 and A2) 
+- zkVMs: SP1 and RISC Zero are the most established; **OpenVM 2.0 audited release (July 2026)** (vendor-reported performance); Jolt alpha; proof cost has fallen sharply (ethproofs cost from $1.69 to well under 4 cents per block through 2025) `[S]`. Post-quantum security is lost if the final proof is wrapped in Groth16/PLONK `[S]`; under-constrained circuits are the dominant bug class (audits, fuzzing, version pinning).
+- zkML benchmark on a small INT8 MLP (3.4M parameters): EZKL ≈ 8 s median proving, 1.1 KB proofs; RISC Zero ≈ 41 s; transformers "impractical today; use a TEE" `[S: single benchmark blog]`.
+- Decision (R2 refined): **A3 = zkVM proof of policy-gate evaluation and of small deterministic scorers, STARK-final (no Groth16 wrap) to keep PQ**; **A2 = TEE attestation for model inference**; LLM-scale zk stays research.
+
+## 6. Competitive picture `[S: vendor blogs; treat as indicative]`
+Identity/authorization vendors (Aembit, Strivacity, AI Modularity, BlindOracle, Salesforce Agentforce) and audit tooling (Bifrost HMAC-signed logs, OpenTelemetry, cloud audit logs, SIEM WORM) are described as lacking **independent verification**; hash-chain/anchoring products exist (AgentStamp: Ed25519 + ERC-8004-bound ids; InALign; others) and the reviewer notes agent ids are often unverified strings; none were described with **independent witnesses** or hosted-runtime completeness. This supports the differentiators: witnessed non-equivocation, completeness by construction (C2/C3), standards-based receipts, PQ posture, and the runtime.
+Capital signals: agent-security/governance rounds in Jul–Sep 2026 included Zenity $125M Series C, Onyx $113M Series B, Neo Security $100M, **AIUC $40M Series A (Ribbit)**, Cymphony $30M, AIR Security $50M `[S: tracker]`. The category is funded; AIUC is both a channel (certification needs evidence) and a benchmark.
+
+## 7. Trading frontier — what the new evidence changes
+- **Settlement manipulation in 5-minute BTC contracts** `[S: arXiv 2606.31675 preprint]`: pushes in spot near close flip winners (65% in near-even cycles vs 41% normal); 821 likely manipulators (~1 in 300 traders) earned US$8.2M in pushed cycles; retail bore 93% of non-maker losses; authors report manipulation largely absent in 15-minute contracts. **Consequence:** the v6 "5-minute BTC maker swarm" is an adversarial venue for makers; LP-2 is restricted to ≥15-minute horizons, with a manipulation guard and pull rules.
+- **Kalshi makers vs takers** `[V: Whelan paper, 2021–Apr 2025, 46,282 contracts]`: average return −9.64% for makers, −31.46% for takers; contracts ≤10¢ lose >60%; contracts >50¢ earn small positive returns (makers ≥50¢ ≈ +2.6%, sd 33%); bias weakened in 2025 data. **Consequence:** even makers lose on average; edge comes from selection (side, price band, event type), not from being a maker per se; LP-1 buys only where the band evidence supports it and treats rewards as the margin of safety.
+- **Polymarket fee and resolution facts** `[S]`: most markets zero fee; 15-minute crypto markets charge taker fees up to ~1.56–1.80% at 50%; UMA optimistic oracle with a US$750 bond, 2-hour challenge window, escalated disputes 48–72 h. **Consequence:** resolution-window and dispute parameters enter the risk engine.
+- **Hyperliquid HIP-4** `[S]`: live on mainnet 2 May 2026; phase 1 validator-curated markets, crypto price binaries only; thin liquidity at launch (~US$54k first-hours volume); fees on close/settlement, no maker rebates; authorized-oracle settlement in USDH; API limits ~100 req/min. **Consequence:** adapter is research-grade (R7); oracle-trust risk is explicit.
+- Not retrieved: the OSC "who wins and loses" paper (fetch failed). Earlier Polymarket findings (longshot bias, <10¢ buys losing 19.3¢/$) remain `[S]`.
+
+## 8. Profit levers added or sharpened
+1. P10 verifiable agent-built-software provenance (above).
+2. Channel and certification: evidence packs designed to feed AIUC-1-style certification and insurer underwriting; partner conversations with AIUC and auditors.
+3. Funding: the sector's rounds (previous section) make an equity raise a credible way to staff the factory's human verifiers and pay for audits; treated as an option, sized in Addendum H v2.
+4. Standards-based interoperability as distribution: AuthZEN PDP, MCP/A2A gateway, AP2/x402 payments make VeriChain a drop-in layer.
+
+## 9. Still unverified / open
+RFC 9964 final COSE algorithm ids; AIUC-1 requirement text; NLnet current call; x402 and AP2 spec details; GPU-TEE attestation maturity; OSC study; Verifiable Intent details; prEN 18229-1 content. Tracked in SOURCES.

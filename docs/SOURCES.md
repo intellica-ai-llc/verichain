@@ -64,3 +64,17 @@ Status: **verified** = primary source opened; **partial** = source opened, claim
 | x402 open HTTP-402 payment protocol (Coinbase-originated) | secondary; spec not opened |
 | C2SP tlog-checkpoint and signed-note formats | verified from specs (implemented in vc-log) |
 | GPU confidential-computing attestation maturity | secondary/unverified (research gate R4) |
+
+## Added in research round 3 (2026-10-23)
+| Claim | Status |
+|---|---|
+| RFC 9964: ML-DSA-44/65/87 COSE alg −48/−49/−50, AKP kty 7, empty ctx, no hybrid | verified from RFC text |
+| draft-sharif-agent-audit-trail-08 (JCS hash chain, ES256/ML-DSA-65, SCITT complementary; expiry date inconsistent in draft) | verified from datatracker; individual draft |
+| Rekor v2 GA 10 Oct 2025 on Tessera; witnessing not yet implemented at GA | verified from Sigstore blog |
+| CSA note: standards bodies (NIST CAISI, CoSAI, CSAI AARM, FIDO WG, CLTC, TC260); audit least covered | verified from CSA PDF |
+| x402 Foundation 40 members, >100M tx on Base; AP2 mandates; MPP; ACP | secondary (Fireblocks blog) |
+| VeriAttn (TEE-verified attention offload; ~2 orders faster than zkLLM; TDX; tolerance-based) | secondary (single preprint, abstract read) |
+| NIST CAISI initiative pages: RFI/concept paper stage; no guidelines yet | verified from NIST page |
+| HIP-4: live 2 May 2026; validator-curated; USDH; no maker rebates; 100 req/min | secondary (Chainstack) |
+| Polymarket wallet-profit distribution (92% ≤ 0; 0.51% > US$1k), arbitrage-window decay, 73% sub-100ms capture | unverified (blog citing Dune/Chainalysis) |
+| AIUC-1 text; NLnet current call | still unverified (fetch blocked) |

@@ -1,8 +1,10 @@
-# VeriChain — ARC42 Architecture Specification v8 (full platform, production grade)
+# VeriChain — ARC42 Architecture Specification v9 (full platform, production grade)
 
-Status: DRAFT for approval · Date: 2026-10-23 · Owner: Damain Ramsajan (Intellica AI Inc.) · Supersedes v7 (v7 becomes the detailed L0 chapter, carried forward below) · Companion: `MAS_ARC42_v3.md` (agents that run on VeriChain)
+Status: DRAFT for approval · Date: 2026-10-23 · Owner: Damain Ramsajan (Intellica AI Inc.) · Supersedes v8 (history in git) and v7 (detailed L0 baseline) · Companion: `MAS_ARC42_v4.md` (agents that run on VeriChain) · Research basis: Addenda A–J (v9 incorporates I and J)
 
-**Scope decision (Damain, 2026-10-23): no cutting.** v8 specifies the entire platform. Nothing from the original vision is deleted. What changes is that every component now has a defined purpose, interfaces, failure modes, acceptance tests, a dependency position in the build order, and — where the underlying claim or technology is unproven or legally sensitive — a **research gate** with a swappable interface and a fallback, so the platform never depends on an unverified claim.
+**Scope decision (Damain, 2026-10-23): no cutting; built by a regimented multi-agent software factory (§4.6, Appendix G), not by a single developer.** v8 specifies the entire platform. Nothing from the original vision is deleted. What changes is that every component now has a defined purpose, interfaces, failure modes, acceptance tests, a dependency position in the build order, and — where the underlying claim or technology is unproven or legally sensitive — a **research gate** with a swappable interface and a fallback, so the platform never depends on an unverified claim.
+
+**v9 additions in this pass (Addendum J):** standards alignment §3.4 and market positioning §3.5; engineering factory §4.6 and Appendix G; hybrid signing as COSE_Sign with RFC 9964 ids (verified); TEE-assisted verifiable inference path; payments against real protocols; ADRs V27–V30.
 
 **Evidence tags used in this document:** `[V]` verified from a primary source this project; `[S]` secondary source; `[U]` unverified; `[A]` assumption/target to be validated at the stated gate. Source status lives in `docs/SOURCES.md`.
 
@@ -38,7 +40,7 @@ Agents may run **on** VeriChain (hosted; strongest evidence) or **beside** it (e
 1. **Integrity and verifiability** — no silent alteration or omission; verification needs no trust in the operator.
 2. **Security of keys and sandboxes** — compromise of one agent, tenant, or operator key cannot forge another's history or escape isolation.
 3. **Correctness and determinism** — canonical encodings, reproducible verification, replayable executions.
-4. **Operability by one person first** — cheap to run, observable, recoverable; scales to a team.
+4. **Operability** — observable, recoverable, automatable; cheap enough to run small and able to scale out.
 5. **Longevity** — evidence stays checkable for 10+ years (algorithm agility, renewal).
 6. **Performance** — adequate for agent workloads (targets in §10); not a high-frequency-trading engine.
 
@@ -58,14 +60,14 @@ Agents may run **on** VeriChain (hosted; strongest evidence) or **beside** it (e
 ## 2. Constraints
 | ID | Constraint | Note |
 |---|---|---|
-| K1 | Solo founder initially; development machine has ~4 GB RAM | cloud builds/CI do heavy work; crates must build in modest memory; dev profile must run a one-node stack in <1 GB |
+| K1 | Engineering is performed by a **multi-agent factory** (builder agents, independent verifier agents, human orchestrators/verifiers); owner workstation is a thin client | all heavy builds/tests run in CI/cloud; dev profile still runs a one-node stack in <1 GB so anyone can reproduce |
 | K2 | Rust for core (memory safety, WASM target for verifier); TypeScript for console/SDK; Python SDK | |
 | K3 | Open-core: Apache-2.0 for spec, log, verifier, SDKs | commercial: hosted witnessing/retention, evidence packs, SLA, compliance mappings (Addendum H) |
 | K4 | ASL is a separate repo (`agentseedlanguage-cpu/agentseed`) | VeriChain integrates through a defined hook (`vc-asl-hook`), not by vendoring |
 | K5 | Standards first: SCITT RFC 9943 `[V]`, RFC 8785 `[V]`, RFC 9162-style logs `[V]`, C2SP tlog-checkpoint and signed-note `[V]`, COSE RFC 9052 | deviations require an ADR |
 | K6 | Legal gates: tokens, exchange/tokenization, custody, money transmission, biometric identity need counsel before any production launch | engineering may build behind feature flags; launch is gated |
 | K7 | Trinidad & Tobago operator; users worldwide | data-protection and export considerations per deployment |
-| K8 | Budget: ≤ US$1,500/month until first paid pilot (Addendum H) | free tiers and object storage preferred; witnesses can be community/third-party |
+| K8 | Budget is a managed parameter (Addendum H v2), not a design constraint; cost ceilings apply to the *reference deployment* until revenue or funding | object storage and community/third-party witnesses keep run cost low; factory compute and audits are budgeted separately |
 
 ---
 ## 3. Context and scope
@@ -96,6 +98,24 @@ Agents may run **on** VeriChain (hosted; strongest evidence) or **beside** it (e
 3. Operator ⟷ verifier (operator is *not* trusted for integrity; witnesses and anchors bound its power).
 4. Platform ⟷ external world (every effect is mediated and recorded).
 
+### 3.4 Standards and ecosystem alignment (status as read this session)
+| Body / spec | Status | What VeriChain does |
+|---|---|---|
+| IETF SCITT RFC 9943 | Proposed Standard `[V]` | statements/receipts profile (core) |
+| RFC 9964 ML-DSA for JOSE/COSE | Standards Track, May 2026 `[V]` | PQ algorithm ids; hybrid via COSE_Sign |
+| IETF `draft-sharif-agent-audit-trail` (AAT) v08 | individual draft, not endorsed `[V]`: JSON records, JCS hash chain (`prev_hash`), ES256 default, ML-DSA-65 optional; says SCITT is complementary | **import/export adapter** (`vc-aat`): AAT sessions map to statement chains; VeriChain adds witnessing, completeness levels, hosting |
+| IETF WIMSE agent delegation chain -01 | individual draft, expires Mar 2027 `[V]` | `vc-cap` token format |
+| CSAI Foundation **AARM** (runtime action enforcement: policy engine, approval service, receipt generator, telemetry exporter) | draft with working group `[S]` | `vc-fge`=policy engine, `approval` statements=approval service, statements+receipts=receipt generator, OpenTelemetry=telemetry; **join the WG and publish the mapping** |
+| CoSAI agentic IAM paper; OASIS | published `[S]` | agents as non-human identities with lifecycle (`vc-id`) |
+| FIDO Alliance agentic authentication WG (Apr 2026); Mastercard Verifiable Intent; Google AP2 | in development `[S]` | `vc-pay`/`vc-id` interop; AP2 Intent/Cart/Payment mandates recorded as `approval`/`delegation`/`settlement` statements referencing the mandate hash |
+| x402 Foundation (40 launch members incl. AWS, Circle, Cloudflare, Google, Mastercard, Visa; >100M transactions on Base through Q1 2026 per Chainalysis) `[S]`; Stripe/Tempo MPP; OpenAI/Stripe ACP | live / launched `[S]` | `vc-pay` adapters; none is source of truth (V26) |
+| NIST CAISI AI Agent Standards Initiative; NCCoE agent identity concept paper | RFIs/concept paper, no guidelines yet `[V]` | monitor; submit comments; map controls when guidelines appear |
+| Sigstore Rekor v2 (GA 10 Oct 2025, Tessera tiles; **witnessing "will be implemented soon"**) `[V]` | GA | validates tile-log design; the public witness ecosystem is immature, so VeriChain runs and recruits its own independent witnesses and offers witnessing as a service |
+| ERC-8004, ERC-8183 | draft-stage `[V/S]` | bridges, not truth |
+
+### 3.5 Market positioning
+Observed gap: standards bodies cover agent identity and authorization far more than **audit**; "audit receives less explicit coverage" (CSA convergence note `[V]`). Existing products are mostly vendor-signed logs or hash chains without independent witnesses or completeness guarantees `[S]`. VeriChain's position: **the independent, witnessed, standards-based evidence layer and the runtime that makes completeness enforceable**, interoperable with AAT/AARM/AP2/x402 rather than competing with them.
+
 ---
 ## 4. Solution strategy
 
@@ -123,11 +143,17 @@ L0  Evidence                   vc-core  vc-cose  vc-log  vc-seq  vc-witness  vc-
 ```
 Dependencies point **downward only**. L0 depends on nothing above it, so the verifier can be audited and shipped alone.
 
-### 4.3 Build order and gates (detail in ROADMAP and Appendix F)
+### 4.3 Build order and gates (detail in ROADMAP and Appendix F; the order is dependency order, not a staffing assumption)
 L0 (G1–G4) → L1 (G5) → L2 runtime + gateway/signer (G6–G7) → L3 assurance (G8) → L4 federation/BFT (G9) → L5 economy (G10, legal gate) → L6 governance/compliance/console (G11) → hardening, audit, launch (G12). Parallel tracks: trading agents on the platform (MAS v3), commercial track (M0–M4), research gates (R1–R6, §11.2).
 
 ### 4.4 Key decisions (summary; full ADRs §9)
 SCITT/tlog log for L0; completeness-by-construction via chokepoints; hosted runtime on WASM first with microVM for hostile/native workloads; delegation chains per the IETF WIMSE agent delegation-chain draft `[V]` (JWT, JCS, attenuation) mapped into VeriChain statements; ERC-8004 identity bridge and ERC-8183-compatible job escrow as chain adapters, not as the source of truth; BFT ordering behind an interface with Malachite (alpha, unaudited `[V]`) as the leading candidate and an experiment gate for ORCHID.
+
+### 4.5 Assurance by verified inference (A2 path)
+Hosted inference can be checked cheaply when the verifier is a TEE and the heavy computation runs on an untrusted GPU: a 2026 preprint (VeriAttn) verifies attention outputs inside a TEE with randomized linear and log-product checks and reports orders-of-magnitude lower latency than zkLLM on comparable models, with limits: tolerance-based (not bit-exact), Intel TDX tested, side channels/DoS out of scope, no confidentiality `[S: arXiv 2606.16352; single preprint]`. VeriChain therefore ranks A2 (TEE-attested, TEE-verified inference) as the practical assurance for LLM calls and keeps zk for small deterministic gates (A3). Verification results carry their tolerance in the statement (`assurance_detail`).
+
+### 4.6 Engineering operating model (multi-agent software factory)
+The platform is built by a **regimented factory**: version-controlled specs are the contract; builder agents implement; independent verifier agents attack; humans orchestrate, decide and sign off. Full procedure in Appendix G. Properties: dependency-ordered parallelism (the DAG in Appendix G), contract-first interfaces (traits + vectors frozen at G1 so crates build concurrently), independent test authorship for security-critical code, differential testing against second implementations, evidence-backed acceptance bundles, graduated autonomy, and dogfooding (factory acceptance bundles and releases are logged on VeriChain).
 
 ---
 ## 5. Building block view
@@ -136,7 +162,7 @@ SCITT/tlog log for L0; completeness-by-construction via chokepoints; hosted runt
 | Crate | Responsibility | Interfaces | Failure behavior | Acceptance |
 |---|---|---|---|---|
 | `vc-core` | RFC 8785 canonical JSON, SHA-256, ids, chain rules | Rust API; spec vectors | rejects malformed; pure functions | RFC 8785 example, chain negatives (done) |
-| `vc-cose` | COSE_Sign1 build/verify; algorithm registry (Ed25519 -19; ML-DSA hybrid later) | Rust API | unknown alg/kid = reject | roundtrip + negatives (done); interop vector with a second COSE implementation |
+| `vc-cose` | COSE_Sign1 build/verify; algorithm registry (Ed25519 -19; ML-DSA-44/65/87 per RFC 9964 `[V]`: alg −48/−49/−50, key type AKP (kty 7), empty context string, no hybrid defined; **hybrid = COSE_Sign (tag 98) carrying an Ed25519 (−19) signature and an ML-DSA-65 (−49) signature over the same payload**; SLH-DSA when its COSE draft finalizes) | Rust API | unknown alg/kid = reject | roundtrip + negatives (done); interop vector with a second COSE implementation |
 | `vc-log` | tree hashing, inclusion/consistency proofs, checkpoints (C2SP signed note), tile layout | Rust API | proof failure = typed error | CT reference roots, all-pairs proofs, quorum and split-view tests (done) |
 | `vc-seq` (`vcd`) | sequencer: validate statement against registration policy, append, batch, sign checkpoints, serve API | SCRAPI-style HTTP (§Appendix B); gRPC for internal | refuses on policy fail; never acknowledges before durable write; crash-safe (WAL + tile fsync) | crash-injection suite; 10k statements/s single node on dev VM `[A]` |
 | `vc-witness` | fetch checkpoint, verify consistency vs last-seen, cosign; gossip last-seen with peers | HTTP; tlog-witness style | refuses to cosign on inconsistency and raises alarm | split-view detection test with ≥2 independent witnesses |
@@ -159,7 +185,7 @@ Accept iff: valid signature by a registered issuer key (valid at time of stateme
 ### 5.2 L1 — Identity and authority
 | Component | Responsibility | Interfaces | Failure behavior | Acceptance |
 |---|---|---|---|---|
-| `vc-id` | registry of operators, tenants, agents, issuer keys; DID-style ids (did:key / did:web profile); optional on-chain bridge to ERC-8004 identity registry `[V: draft-stage standard, ERC-721 identity + reputation + validation registries]`; key validity windows; revocation list published on log | HTTP/gRPC; EVM adapter | registry state is *derived from the log* (policy/lifecycle statements) so it is verifiable; cache loss is recoverable | registry rebuilt from log byte-identically |
+| `vc-id` | registry of operators, tenants, agents, issuer keys; DID-style ids (did:key / did:web profile); optional on-chain bridge to ERC-8004 identity registry `[V: draft-stage standard, ERC-721 identity + reputation + validation registries]`; key validity windows; revocation list published on log; **SPIFFE/SPIRE-style workload identity** for hosted agents; consumes **CAEP/Shared Signals** revocation events | HTTP/gRPC; EVM adapter | registry state is *derived from the log* (policy/lifecycle statements) so it is verifiable; cache loss is recoverable | registry rebuilt from log byte-identically |
 | `vc-cap` | delegation chains: root authority → operator → agent → sub-agent; each link attenuates scope, constraints, expiry and depth; offline verification; revocation by status list | library + HTTP; statement kind `delegation` | unknown constraint type = deny; expired/revoked = deny | conformance with IETF draft-asor-wimse-agent-delegation-chain-01 `[V]` test cases (JWT, JCS, par_hash, attenuation rules); property tests: child ⊆ parent for random chains |
 | `vc-kms` | key custody and ceremonies: generation, storage (HSM/KMS/software with sealing), rotation, hybrid Ed25519 + ML-DSA, SLH-DSA root, recovery, quorum-controlled root key | PKCS#11/KMS adapters | signing refused if key not in validity window; rotation is a logged event | scripted rotation and compromise-recovery drills; no private key leaves KMS in tests |
 
@@ -185,7 +211,7 @@ C0 self-reported · C1 gateway-observed (bypass possible and documented) · C2 c
 ### 5.4 L3 — Assurance
 | Component | Responsibility | Acceptance |
 |---|---|---|
-| `vc-fge` | policy decision point: deterministic policy language (limits, allow/deny lists, approvals, rate/loss caps, geo rules); evaluated before each host call; verdict recorded with `policy_hash` | policy evaluation is pure and byte-identical across implementations; conformance vectors; fail-closed on error |
+| `vc-fge` | policy decision point exposed via the **OpenID AuthZEN Authorization API 1.0** (so existing PEPs/IdPs can call it); deterministic policy language (limits, allow/deny lists, approvals, rate/loss caps, geo rules); evaluated before each host call; verdict recorded with `policy_hash` | policy evaluation is pure and byte-identical across implementations; conformance vectors; fail-closed on error |
 | `vc-replay` (A1) | re-execute a recorded run from checkpointed state and recorded non-determinism; compare outputs | replay of hosted WASM agents is bit-identical in test corpus; documented limits for model calls (replay uses recorded outputs, not re-inference) |
 | `vc-attest` (A2) | verify TEE attestation (CPU TEEs; GPU confidential compute `[S]`) binding code measurement and, optionally, model identity to statements; policy of accepted measurements | attestation verification vectors; negative tests (stale/wrong measurement) |
 | `vc-prove` (A3, research gate R2) | zero-knowledge proof that a *policy gate* evaluated as claimed (small deterministic circuit), via zkVM; **not** proof of LLM inference at scale | proof verifies in `vc-verify`; cost/latency benchmark; NANOZK-style layer proofs remain research (`[V]` real preprint, simulation-scale, single-author) |
@@ -205,7 +231,7 @@ Invariant: whichever orderer is used, the output is the same checkpoint/tile for
 ### 5.6 L5 — Economy (legal gates apply before production use)
 | Component | Responsibility | Standards | Gate |
 |---|---|---|---|
-| `vc-pay` | agent payments: HTTP 402-style pay-per-call client/server (x402 `[S]`), stablecoin settlement, spend caps enforced by `vc-fge`, every payment is intent/outcome plus `settlement` statement | x402 (Coinbase-originated, open protocol `[S]`); L402 optional | G10 |
+| `vc-pay` | agent payments: HTTP 402-style pay-per-call client/server (x402 `[S]`), interop with AP2 v0.2 and Mastercard/FIDO Verifiable Intent `[S]`, stablecoin settlement, spend caps enforced by `vc-fge`, every payment is intent/outcome plus `settlement` statement | x402 (Coinbase-originated, open protocol `[S]`); L402 optional | G10 |
 | `vc-jobs` | job escrow: Open→Funded→Submitted→Completed/Rejected/Expired, client/provider/evaluator, hooks; **evaluator can be a VeriChain verifier contract that checks evidence** (e.g., "the provider's agent logged the required steps with assurance ≥ A1") | ERC-8183 `[V: state machine and hooks read from the ERC text; status field not stated, treat as draft]` | G10 |
 | `vc-rep` | reputation computed from evidence (completion rate, orphan rate, policy violations, dispute outcomes), published as verifiable aggregates; bridge to ERC-8004 reputation registry | ERC-8004 `[V]` | G10 |
 | `vc-market` | agent catalog, listing, licensing; **tokenization/fractional ownership only after counsel review** (securities risk) | — | legal gate L-2 |
@@ -251,7 +277,7 @@ Agent action → `vc-cap` (is it authorized?) → `vc-fge` (is it permitted by p
 
 | Topology | Components | Use | Monthly cost target `[A]` |
 |---|---|---|---|
-| T0 Dev | all-in-one process, filesystem tiles, one local witness | laptop/Chromebook (<1 GB), CI | ~0 |
+| T0 Dev | all-in-one process, filesystem tiles, one local witness | any laptop (<1 GB), CI, factory sandboxes | ~0 |
 | T1 Pilot | `vcd` + object storage + 2 external witnesses + 2 TSAs + OpenTimestamps; runtime on one small cluster (WASM) | first paid pilots | ≤ US$300 |
 | T2 Production | HA `vcd` (active/standby with fencing), tiles on replicated object store, ≥3 independent witnesses, runtime cluster with microVM pool, KMS/HSM, console, observability stack | customers with SLAs | grows with revenue |
 | T3 Federated | T2 plus `vc-bft` across ≥4 independent operators | multi-operator trust | per research gate R3 |
@@ -309,6 +335,14 @@ v7 decisions V01–V13 stand except where amended here.
 | V20 | Dogfood: platform's own releases and operator actions are logged on the platform | accepted |
 | V21 | Orderer, prover, signature suite, anchor, storage are traits with conformance suites | accepted |
 | V22 | PostgreSQL is an index only; the log (tiles) is the source of truth | accepted |
+| V23 | Engineering system is a regimented multi-agent software factory: spec-driven, traceable, independently verified, evidence-backed acceptance, graduated autonomy, human sign-off on security-critical modules; factory acceptance bundles are logged on VeriChain (Appendix G) | accepted |
+| V24 | `vc-fge` exposes the AuthZEN 1.0 PDP API; internal gRPC remains | accepted |
+| V25 | PQ: hybrid Ed25519 + ML-DSA-65 on checkpoints (RFC 9964 `[S]`), SLH-DSA root when its COSE draft is final; zk proofs STARK-final | accepted (confirm RFC 9964 ids) |
+| V27 | AAT adapter (`vc-aat`) and AARM mapping published; VeriChain statements are the superset | accepted |
+| V28 | Hybrid signatures use COSE_Sign with Ed25519 + ML-DSA-65 (RFC 9964 defines no composite scheme); verifier requires both unless policy says otherwise | accepted |
+| V29 | A2 via TEE-verified inference is the primary assurance for LLM calls; zk limited to small deterministic gates | accepted |
+| V30 | Run and recruit own independent witnesses; public witness ecosystem is immature (Rekor v2 witnessing not live at GA) | accepted |
+| V26 | Payments interoperate with x402, AP2, Verifiable Intent behind `vc-pay` adapters; none is the source of truth | accepted |
 
 ---
 ## 10. Quality requirements (measurable; validated at the stated gate)
@@ -324,20 +358,24 @@ Q1–Q9 from v7 stand (gates re-mapped in Appendix F). Added:
 | Q16 | Job evaluator verifies required evidence steps | correct accept/reject on 100 fixtures | G10 |
 | Q17 | Governance tally independently verifiable | verifier reproduces result from published data | G11 |
 | Q18 | Platform recovery from regional loss | RPO ≤ last witnessed checkpoint; RTO ≤ 1 h `[A]` | G12 |
+| Q19 | Requirement traceability | 100% of FR ids map to ≥1 passing test; CI fails otherwise | G1 onward |
+| Q20 | Independent verification | every merged change in a security-critical crate has a verifier-agent report from a different model/prompt and a human sign-off | G1 onward |
+| Q21 | AuthZEN conformance | `vc-fge` passes the AuthZEN 1.0 interop test cases | G8 |
 
 ---
 ## 11. Risks, research gates, legal gates
 
 ### 11.1 Risks
-v7 risk table stands. Added: platform scope vs solo capacity (H: strict gating, automation, CI, hiring/contributors when revenue arrives); sandbox escape (H: layered isolation, bug bounty after launch); model-call replay limits (M: document A1 boundaries); chain/contract risk (H: audits before funds); regulatory classification of marketplace/tokens (H: counsel gates).
+v7 risk table stands except "solo-founder capacity", which is replaced by **factory quality risk** (H: AI-written code can be wrong at scale; mitigated by spec traceability, independent verifier agents, differential testing, human sign-off on security-critical modules, external audits; Appendix G). Added: sandbox escape (H: layered isolation, bug bounty after launch); model-call replay limits (M: document A1 boundaries); chain/contract risk (H: audits before funds); regulatory classification of marketplace/tokens (H: counsel gates).
 
 ### 11.2 Research gates (swappable interface + fallback; no production dependency until passed)
 | Gate | Claim/technology | Experiment | Pass criterion | Fallback |
 |---|---|---|---|---|
 | R1 | ORCHID-style consensus (single-author simulation-only preprint `[V]`) | independent reimplementation; adaptive-adversary simulation vs `vc-bft`; deterministic arithmetic (no floating point) | matches or beats `vc-bft` safety/liveness at equal fault model; peer review or formal argument | `vc-bft` |
-| R2 | ZK proofs for policy gates and (research) model layers (NANOZK `[V]` real, small-scale) | benchmark zkVM on `vc-fge` circuits; measure proof size/time/cost | proof ≤ 1 MB, ≤ 10 s on commodity GPU/CPU `[A]` for gate evaluation | A1/A2 only |
+| R2 | A3: zkVM proofs of policy-gate evaluation and small deterministic scorers; **STARK-final (no Groth16/PLONK wrap) to preserve PQ security**; candidates SP1, RISC Zero, OpenVM 2.0 (audited release, July 2026, vendor-reported perf) `[S]`. NANOZK-style LLM-layer proofs remain research `[V]` real preprint, small-scale; zkML benchmarks show only small MLPs practical, transformers → TEE `[S]` | benchmark candidates on `vc-fge` circuits; independent circuit audit; fuzz for under-constrained circuits | gate proof verifies in `vc-verify`; ≤ 1 MB (≤ 220 KB target), ≤ 10 s on commodity GPU `[A]` | A1/A2 only |
 | R3 | Malachite production readiness (alpha, unaudited `[V]`) | soak, Jepsen-style fault injection, audit | no safety violations; audit findings closed | CometBFT |
-| R4 | GPU TEE attestation for model identity `[S]` | attest on supported hardware; verify measurement binding | verifiable end-to-end in `vc-attest` | A0/A1 for model calls |
+| R4 | A2 verified inference: TEE attestation (CPU TDX/SEV-SNP; GPU confidential compute `[S]`) plus TEE-verified GPU offload (VeriAttn-style `[S]`) | reproduce on supported hardware; measure tolerance, overhead; verify measurement binding end-to-end in `vc-attest` | attestation verifies; overhead and numeric tolerance documented; adversarial tests (stale/wrong measurement, tampered GPU output) fail | A0/A1 for model calls |
+| R7 | HIP-4 and other outcome-market adapters (oracle-trust, thin liquidity) | paper trading and oracle-risk review (MAS v4) | adapter passes S0–S1 and legal review | adapter stays disabled |
 | R5 | ZK compliance proofs for regulators | prototype on one rule | verifier accepts; legal review | evidence packs |
 | R6 | Reputation/economic mechanism robustness (sybil, collusion) | simulation + adversarial review | no cheap manipulation at target scale | disable score use in settlement |
 
@@ -381,7 +419,7 @@ As v7 Appendix A (JCS, COSE, Merkle, checkpoint/witness quorum, chain rules, com
 ```
 verichain/
   spec/                      # schemas, vectors, requirements, profiles
-  crates/ L0: vc-core vc-cose vc-log vc-seq vc-witness vc-anchor vc-verify vc-pack vc-sdk
+  crates/ L0: vc-core vc-cose vc-log vc-seq vc-witness vc-anchor vc-verify vc-pack vc-sdk vc-aat
           L1: vc-id vc-cap vc-kms
           L2: vc-run vc-sandbox vc-hostio vc-vault vc-gateway vc-signer vc-asl-hook
           L3: vc-fge vc-replay vc-attest vc-prove
@@ -395,6 +433,7 @@ verichain/
 ## Appendix F — Build order and gate map
 | Gate | Scope | Done when |
 |---|---|---|
+| G0.5 | **factory ready**: agent roles, harness, CI gates, traceability checks, acceptance-bundle format (Appendix G) | factory builds and verifies a reference crate end to end |
 | G1 | spec freeze: schema, vectors, requirements, threat model | approved; vectors in repo |
 | G2 | tile log + `vcd` + checkpoints | crash/limits tests; <1 GB |
 | G3 | witnesses + split-view | ≥2 independent witnesses |
@@ -407,3 +446,26 @@ verichain/
 | G10 | economy: pay, jobs, reputation (legal L-1; market/token per L-2/L-3) | Q16 |
 | G11 | governance, compliance, console, ops | Q17 |
 | G12 | hardening: external audit, game days, launch | Q18 |
+
+## Appendix G — Engineering factory (multi-agent, gate-driven)
+**Roles.** *Human orchestrator* (priorities, approvals, legal gates); *spec steward agent* (owns ARC42, `spec/requirements.md`, schemas; every change versioned); *builder agents* (one per crate or work package, each in its own git worktree, parallel candidates allowed); *vector author agents* (write test vectors and property tests **independently** of the builder, from the spec only); *verifier agents* (adversarial review, differential testing, fuzzing; different prompt and, where possible, different model family from the builder); *security reviewer agents* (threat-model conformance, sandbox/crypto review); *integration agent* (cross-crate contract checks, end-to-end scenarios S1–S10); *release agent* (reproducible builds, SBOM, signing); *ops agents* (runbook execution under human approval for irreversible actions). Humans sign off security-critical modules (crypto, sandbox, signer, settlement) and every legal-gated feature.
+
+**Rules.**
+1. No code without a requirement ID; no requirement without an acceptance test; CI fails on untraced code or untested requirements (Q19).
+2. Contract-first: traits, schemas and vectors are frozen at G1; crates are built in parallel against them.
+3. Builder and test author are different agents for any security-critical crate; crypto and format code must also pass differential tests against an independent implementation (e.g., Go tlog libraries, a second COSE library, CT reference trees).
+4. **Acceptance bundle** per change: requirement ids, diff, test results, vector results, fuzz/property summary, verifier-agent report, reviewer sign-off (human where required), build hash. Bundles are logged on VeriChain (dogfood) and exportable as an evidence pack (product P10).
+5. Graduated autonomy: agents may merge low-risk changes after green gates; security-critical or irreversible changes require human sign-off; autonomy level per crate is recorded.
+6. Parallel candidates are compared by the verifier agents and the best-evidenced one merges; discarded candidates are retained for learning.
+7. Persistent shared knowledge: decisions in ADRs, research in addenda, claims in SOURCES; agents consult these before improvising and file new findings back.
+8. Spend and rate budgets per gate are explicit; the harness stops and escalates when exceeded.
+
+**Dependency DAG (what can run in parallel after G1).**
+Wave 1 (parallel): `vc-seq`, `vc-witness`, `vc-anchor`, `vc-verify`, `vc-sdk`, `vc-aat`, `vc-store`; spec stewards finish requirements and threat model.
+Wave 2 (needs wave-1 interfaces): `vc-pack`, `vc-id`, `vc-cap`, `vc-kms`, `vc-fge` (policy language + vectors can start earlier), `vc-gateway`, `vc-signer`.
+Wave 3: `vc-run`, `vc-sandbox`, `vc-hostio`, `vc-vault`, `vc-replay`, `vc-attest`, `vc-asl-hook`.
+Wave 4: `vc-bft`, `vc-federate`, `vc-pay`, `vc-jobs`, `vc-rep`, `vc-prove`.
+Wave 5: `vc-gov`, `vc-comply`, `vc-console`, `vc-ops`, then gated `vc-market`, `vc-token`.
+Research gates R1–R7 run alongside as lab crates and reports, never blocking waves until their consumer arrives.
+
+**Factory acceptance for G0.5.** A reference crate (`vc-log`, already built) is re-derived end to end by the factory from the spec: independent vectors, differential test against an independent tree implementation, verifier report, acceptance bundle logged. Passing proves the process before scaling it.
