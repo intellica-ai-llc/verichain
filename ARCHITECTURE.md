@@ -1,23 +1,18 @@
-# VeriChain — Architecture (v7 draft)
+# VeriChain — Architecture summary
 
-Supersedes `docs/archive/VERICHAIN_ARC42_v6.md`. Rationale: `docs/addenda/A–D`. Every external claim must be tracked in `docs/SOURCES.md` (to be created) as verified / unverified / refuted.
+Authoritative specs (drafts, pending G1 approval):
+- `docs/arc42/VERICHAIN_ARC42_v7.md` — the product: witnessed, append-only, post-quantum-ready evidence log for agents.
+- `docs/arc42/MAS_ARC42_v2.md` — the reference tenant: trading agents (own capital) that generate verifiable track records.
+Evidence and rationale: `docs/addenda/A–G`. Claim status: `docs/SOURCES.md`. Superseded v6 documents: `docs/archive/`.
 
-## 1. Goal and scope
-v1 = **L0 Evidence layer**: signed, witnessed, append-only records of agent actions with offline verification. L1 identity/reputation, L2 proof tiers, L3 consensus/settlement and L4 governance/economy are deferred research, not commitments. The trading swarm (MAS) is a later tenant/dogfood, never a revenue assumption.
+## One-paragraph architecture
+Agents (via a gateway, a policy-enforcing signer, or later the ASL runtime) submit signed **statements** (intent before an effect, outcome after) to a sequencer that appends them to a **tile-based Merkle log** and returns SCITT (RFC 9943) receipts. Signed **checkpoints** are cosigned by independent **witnesses** and time-anchored. An open **offline verifier** checks signatures, inclusion, witness quorum, anchors and **completeness** (orphan intents, sequence gaps) and reports declared **completeness (C0–C3)** and **assurance (A0–A3)** levels. Payloads stay off-log behind salted commitments.
 
-## 2. Principles
-1. Standards first: SCITT (RFC 9943) statements/receipts, tile-based Merkle log with signed checkpoints, independent witness cosigning.
-2. Completeness over completeness-claims: every receipt declares a completeness level (C0 self-reported · C1 gateway-observed · C2 runtime-enforced · C3 runtime-enforced + attested runtime).
-3. Honest assurance: every record declares A0 signed · A1 deterministic replay · A2 TEE attestation · A3 zkVM proof of gate evaluation. Never "100% proven".
-4. Commitments, not payloads: salted hashes on-log; payloads off-log; crypto-shredding for erasure.
-5. Post-quantum by batch: sign checkpoints (hybrid Ed25519 + ML-DSA; evaluate SLH-DSA for root), per-receipt hash-path proofs, documented key rotation and evidence renewal.
-6. Verifier is open, small, offline (CLI + WASM) and the product's trust anchor.
-
-## 3. Components (v1)
-Receipt emitter (ASL VM hook; MCP/A2A gateway adapter) → sequencer + tile log → witness client → time/anchor (RFC 3161, OpenTimestamps) → verifier → evidence-pack exporter → issuer/policy registry.
-
-## 4. Decision Primitive v2 (to specify, gate G1)
-COSE_Sign1 over canonical JSON (RFC 8785): action, principal, capability chain, policy content hash, verdict, input/output commitments, `completeness`, `assurance`, sequence/prev-hash. Test vectors required before code.
-
-## 5. Open decisions
-ORCHID stays research-only. Hosting: object-storage tiles, no consensus requirement in v1. Naming of the ASL hook interface depends on the ASL repo (v0.2.0 charters/speculation are not implemented there).
+## Principles
+1. Standards first (SCITT, COSE, RFC 8785, tile logs, witnesses).
+2. Honest claims: no "100% proven"; levels on every record.
+3. Completeness by construction at chokepoints (signer, VM discharge gate); gateway tier is labeled C1.
+4. Commitments, not payloads; crypto-shredding for erasure.
+5. Post-quantum at checkpoint level; renewal by re-anchoring.
+6. Open verifier; open-core business (Apache-2.0 core; hosted witnessing, retention, packs commercial).
+7. Models propose, deterministic code disposes (MAS).

@@ -6,7 +6,7 @@ Rule: design gates first; no code before the G1 spec is approved by Damain.
 | Gate | Deliverable | Done when |
 |---|---|---|
 | G0 | Repo reset, four standard files, `docs/SOURCES.md` triaging every cited claim | claims marked verified / unverified / refuted |
-| G1 | Decision Primitive v2 + SCITT profile + completeness/assurance definitions + test vectors | Damain approves |
+| G1 | ARC42 v7 and MAS v2 approved; Decision Primitive v2 schema frozen; test vectors (see ARC42 v7 Appendix A) written | Damain approves |
 | G2 | Minimal Rust tile log: checkpoint, inclusion and consistency proofs | passes vectors; runs in <1 GB RAM on a 4 GB Chromebook |
 | G3 | Witness cosigning + split-view detection test | ≥2 independent witnesses |
 | G4 | COSE receipts + RFC 3161 / OpenTimestamps anchoring + verifier CLI | verifier passes vectors offline |
@@ -24,3 +24,13 @@ Rule: design gates first; no code before the G1 spec is approved by Damain.
 
 ## Deferred
 ORCHID consensus, UBE/World ID, agent exchange, Lightning settlement, trading swarm.
+
+## MAS (trading) track — see `docs/arc42/MAS_ARC42_v2.md`
+| Gate | Deliverable | Done when |
+|---|---|---|
+| T0 | Data pipeline + simulator; experiment registry; DSR/PBO tooling | reproducible backtest; validated against known fills |
+| T1 | `mas-risk` + `mas-exec` + `vc-signer` integration (paper trading, evidence emitted) | 0 unevidenced orders; kill switch tested |
+| T2 | LP-1 paper ≥ 60 days | markouts/fills within tolerance |
+| T3 | Legal gate + micro-live ≥ 90 days | clean reconciliation; Sharpe CI lower bound > 0 |
+| T4 | Scale in steps / add FC-1 | capacity tests pass |
+Rule: company revenue never depends on MAS P&L.

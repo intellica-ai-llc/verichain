@@ -12,3 +12,9 @@
 - Reset applied to `main` per Damain's approval: ASL copy and v6 files removed (old tree kept at `archive/pre-reset-2026-10-23`; v6 ARC42, MAS ARC42 and v6 task list copied to `docs/archive/`).
 - Added addendum E (pricing signals, bank-regulation evidence, proposed targets) and `docs/SOURCES.md` (first claim triage).
 - Open: replace targets in E with Damain's real financial objectives; run design-partner conversations (ROADMAP M0).
+
+## 2026-10-23 (spec baseline)
+- Research F (trading: academic domains + evidence) and G (go-to-market answers) added.
+- Wrote `docs/arc42/VERICHAIN_ARC42_v7.md` and `docs/arc42/MAS_ARC42_v2.md`. Key changes vs v6: no own consensus; SCITT/tile-log/witness design; intent/outcome completeness; signer chokepoint (C2 without ASL); MAS rebuilt around maker/inventory control, forecast layer with limits outside the model, stage gates; trading removed from revenue assumptions.
+- Correction to Addendum B: the empirical favorite–longshot study shows ≥90¢ purchases earned ≈ +0.83¢/$ before fees, so the closing-window taker idea is edge ≈ 0–1¢ before fees (fees dominate), not the −8% I computed from the v6 doc's assumed 85% certainty.
+- Next: Damain reviews both specs; then G1 (freeze schema, write vectors), then code.

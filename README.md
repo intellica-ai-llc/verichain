@@ -14,10 +14,12 @@ Agents now act with money, data and authority, and most "audit trails" are self-
 ## Documents
 | File | Purpose |
 |---|---|
-| `ARCHITECTURE.md` | Current architecture (v7 draft) |
+| `docs/arc42/VERICHAIN_ARC42_v7.md` | **VeriChain design baseline (v7 draft, for G1 approval)** |
+| `docs/arc42/MAS_ARC42_v2.md` | **Trading agents on VeriChain: reference tenant / dogfood (v2 draft)** |
+| `ARCHITECTURE.md` | Short architecture summary and pointers |
 | `ROADMAP.md` | Design gates and commercial milestones |
 | `DEVLOG.md` | Dated log of decisions and findings |
-| `docs/addenda/` | A gap analysis · B ARC42 review · C frontier/differentiation · D revenue and flywheel · E revenue evidence and pricing |
+| `docs/addenda/` | A gap analysis · B ARC42 review · C frontier/differentiation · D revenue and flywheel · E revenue evidence and pricing · F trading research · G go-to-market answers |
 | `docs/archive/` | v6 VeriChain ARC42, MAS (trading swarm) ARC42, v6 task list: historical, not current |
 
 ## License
