@@ -1,4 +1,5 @@
 //! vc-log: RFC 9162-style Merkle tree hashing, inclusion and consistency proofs.
+pub mod checkpoint;
 use vc_core::hash::{leaf_hash, node_hash, sha256, Hash};
 
 #[derive(Debug, PartialEq, Eq, thiserror::Error)]

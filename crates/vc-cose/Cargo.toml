@@ -1,0 +1,13 @@
+[package]
+name = "vc-cose"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "VeriChain COSE_Sign1 (RFC 9052) build/verify, Ed25519"
+
+[dependencies]
+vc-core = { path = "../vc-core" }
+ed25519-dalek.workspace = true
+ciborium.workspace = true
+thiserror.workspace = true
+sha2.workspace = true

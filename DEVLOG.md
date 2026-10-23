@@ -27,3 +27,4 @@
 ## 2026-10-23 — G1 started
 - Damain approved objectives and specs.
 - Cargo workspace with `vc-core` (RFC 8785, SHA-256, chain rules) and `vc-log` (RFC 9162 tree, inclusion/consistency proofs); tests pass, incl. RFC 8785 example and CT 8-leaf reference roots; `spec/statement.schema.json` added.
+- G2 started: signed checkpoints (C2SP note format) with operator + witness-quorum verification and split-view check in `vc-log`; `vc-cose` COSE_Sign1 (Ed25519). All tests pass.
