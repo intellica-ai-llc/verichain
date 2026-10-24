@@ -462,10 +462,27 @@ version = "0.0.1"
 [[package]]
 name = "vc-seq"
 version = "0.0.1"
+dependencies = [
+ "ed25519-dalek",
+ "hex",
+ "serde_json",
+ "thiserror",
+ "vc-core",
+ "vc-cose",
+ "vc-log",
+ "vc-store",
+]
 
 [[package]]
 name = "vc-store"
 version = "0.0.1"
+dependencies = [
+ "hex",
+ "serde_json",
+ "thiserror",
+ "vc-core",
+ "vc-log",
+]
 
 [[package]]
 name = "vc-verify"

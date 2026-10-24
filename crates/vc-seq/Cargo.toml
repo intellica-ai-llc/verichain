@@ -3,6 +3,14 @@ name = "vc-seq"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "VeriChain vc-seq (skeleton; see spec/contracts/L0.md)"
+description = "VeriChain sequencer core: registration policy, chain enforcement, durable append, signed checkpoints"
 
 [dependencies]
+vc-core = { path = "../vc-core" }
+vc-cose = { path = "../vc-cose" }
+vc-log = { path = "../vc-log" }
+vc-store = { path = "../vc-store" }
+ed25519-dalek.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+hex.workspace = true

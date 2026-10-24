@@ -3,6 +3,13 @@ name = "vc-store"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "VeriChain vc-store (skeleton; see spec/contracts/L0.md)"
+description = "VeriChain tile storage: tlog-style tiles (height 8) and entry bundles, crash-safe append"
 
 [dependencies]
+vc-core = { path = "../vc-core" }
+thiserror.workspace = true
+
+[dev-dependencies]
+vc-log = { path = "../vc-log" }
+serde_json.workspace = true
+hex.workspace = true

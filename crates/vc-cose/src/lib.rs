@@ -180,3 +180,35 @@ pub fn verify1(
         .map_err(|_| CoseError::Signature)?;
     Ok((kid, payload.clone()))
 }
+
+/// Read the kid and payload of a COSE_Sign1 **without verifying the signature**. Only for data that this
+/// process already verified and stored itself (e.g., replaying its own log); never for untrusted input.
+pub fn peek_payload(bytes: &[u8]) -> Result<(Vec<u8>, Vec<u8>), CoseError> {
+    require_single_item(bytes)?;
+    let v: Value = ciborium::de::from_reader(bytes).map_err(|_| CoseError::Malformed)?;
+    let Value::Tag(TAG_SIGN1, inner) = v else {
+        return Err(CoseError::Malformed);
+    };
+    let Value::Array(a) = *inner else {
+        return Err(CoseError::Malformed);
+    };
+    let [Value::Bytes(p), _, Value::Bytes(payload), _] = &a[..] else {
+        return Err(CoseError::Malformed);
+    };
+    let hdr: Value = ciborium::de::from_reader(&p[..]).map_err(|_| CoseError::Malformed)?;
+    let Value::Map(m) = hdr else {
+        return Err(CoseError::Malformed);
+    };
+    let kid = m
+        .iter()
+        .find(|(k, _)| *k == int(4))
+        .and_then(|(_, v)| {
+            if let Value::Bytes(b) = v {
+                Some(b.clone())
+            } else {
+                None
+            }
+        })
+        .ok_or(CoseError::Kid)?;
+    Ok((kid, payload.clone()))
+}

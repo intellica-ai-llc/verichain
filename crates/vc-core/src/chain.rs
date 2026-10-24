@@ -84,16 +84,40 @@ pub struct Report {
     pub open_intents: Vec<String>,
 }
 
-/// Validate statements in log order. The first statement of an agent must have
-/// seq 0 and prev = 64 zeros; later ones seq = last+1 and prev = id of the last.
-pub fn validate(stmts: &[Value]) -> Result<Report, ChainError> {
-    let zero = "0".repeat(64);
-    let mut last: HashMap<String, (u64, String)> = HashMap::new();
-    let mut intents: HashMap<String, String> = HashMap::new(); // id -> agent
-    let mut order: Vec<String> = Vec::new();
-    let mut closed: HashSet<String> = HashSet::new();
+/// A statement that passed all checks against a `ChainState` and may be committed.
+#[derive(Debug, Clone)]
+pub struct Checked {
+    agent: String,
+    seq: u64,
+    id: String,
+    kind: String,
+    intent_id: Option<String>,
+}
 
-    for (i, s) in stmts.iter().enumerate() {
+impl Checked {
+    /// The statement id (hex SHA-256 of canonical bytes).
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+}
+
+/// Incremental chain validator: `check` is pure, `commit` applies a checked statement.
+/// The sequencer calls `check` before the durable append and `commit` after it succeeds.
+#[derive(Debug, Default, Clone)]
+pub struct ChainState {
+    last: HashMap<String, (u64, String)>,
+    intents: HashMap<String, String>, // intent id -> agent
+    order: Vec<String>,
+    closed: HashSet<String>,
+}
+
+impl ChainState {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Check statement number `i` (its position, used in error values) against current state.
+    pub fn check(&self, i: usize, s: &Value) -> Result<Checked, ChainError> {
         let agent = s
             .pointer("/agent/id")
             .and_then(Value::as_str)
@@ -113,8 +137,8 @@ pub fn validate(stmts: &[Value]) -> Result<Report, ChainError> {
             .ok_or(ChainError::Field(i, "kind"))?;
         check_schema(i, s)?;
 
-        let (want_seq, want_prev) = match last.get(&agent) {
-            None => (0, zero.clone()),
+        let (want_seq, want_prev) = match self.last.get(&agent) {
+            None => (0, "0".repeat(64)),
             Some((n, id)) => (n + 1, id.clone()),
         };
         if seq != want_seq {
@@ -125,31 +149,71 @@ pub fn validate(stmts: &[Value]) -> Result<Report, ChainError> {
         }
         let id = statement_id(s).map_err(|_| ChainError::Field(i, "canonicalization"))?;
 
-        match kind {
+        let mut intent_id = None;
+        if kind == "outcome" {
+            let iid = s
+                .pointer("/pair/intent_id")
+                .and_then(Value::as_str)
+                .ok_or(ChainError::Field(i, "pair.intent_id"))?;
+            let owner = self.intents.get(iid).ok_or(ChainError::UnknownIntent(i))?;
+            if *owner != agent {
+                return Err(ChainError::AgentMismatch(i));
+            }
+            if self.closed.contains(iid) {
+                return Err(ChainError::DuplicateOutcome(i));
+            }
+            intent_id = Some(iid.to_string());
+        }
+        Ok(Checked {
+            agent,
+            seq,
+            id,
+            kind: kind.to_string(),
+            intent_id,
+        })
+    }
+
+    /// Apply a statement that `check` accepted against this same state.
+    pub fn commit(&mut self, c: Checked) {
+        match c.kind.as_str() {
             "intent" => {
-                intents.insert(id.clone(), agent.clone());
-                order.push(id.clone());
+                self.intents.insert(c.id.clone(), c.agent.clone());
+                self.order.push(c.id.clone());
             }
             "outcome" => {
-                let iid = s
-                    .pointer("/pair/intent_id")
-                    .and_then(Value::as_str)
-                    .ok_or(ChainError::Field(i, "pair.intent_id"))?;
-                let owner = intents.get(iid).ok_or(ChainError::UnknownIntent(i))?;
-                if *owner != agent {
-                    return Err(ChainError::AgentMismatch(i));
-                }
-                if !closed.insert(iid.to_string()) {
-                    return Err(ChainError::DuplicateOutcome(i));
+                if let Some(iid) = c.intent_id {
+                    self.closed.insert(iid);
                 }
             }
             _ => {}
         }
-        last.insert(agent, (seq, id));
+        self.last.insert(c.agent, (c.seq, c.id));
     }
-    let open_intents = order
-        .into_iter()
-        .filter(|id| !closed.contains(id))
-        .collect();
-    Ok(Report { open_intents })
+
+    /// Intents with no outcome yet, in log order.
+    pub fn open_intents(&self) -> Vec<String> {
+        self.order
+            .iter()
+            .filter(|id| !self.closed.contains(*id))
+            .cloned()
+            .collect()
+    }
+
+    /// Last (seq, id) committed for an agent.
+    pub fn last_of(&self, agent: &str) -> Option<&(u64, String)> {
+        self.last.get(agent)
+    }
+}
+
+/// Validate statements in log order. The first statement of an agent must have
+/// seq 0 and prev = 64 zeros; later ones seq = last+1 and prev = id of the last.
+pub fn validate(stmts: &[Value]) -> Result<Report, ChainError> {
+    let mut st = ChainState::new();
+    for (i, s) in stmts.iter().enumerate() {
+        let c = st.check(i, s)?;
+        st.commit(c);
+    }
+    Ok(Report {
+        open_intents: st.open_intents(),
+    })
 }
