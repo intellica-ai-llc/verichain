@@ -1,0 +1,37 @@
+{
+  "bundle_version": 1,
+  "name": "g05-l0-crates",
+  "created": "2026-10-24T15:08:03+00:00",
+  "git_head": "2b5f51d06317de5d012969d33cf57277b0a3318f",
+  "git_dirty": true,
+  "requirements": [
+    "FR-L0-01",
+    "FR-L0-02",
+    "FR-L0-03",
+    "FR-L0-04",
+    "FR-L0-05",
+    "FR-L0-06"
+  ],
+  "tests": {
+    "passed": 77,
+    "failed": 0,
+    "exit_code": 0
+  },
+  "traceability": {
+    "exit_code": 0,
+    "summary": "requirements: {'implemented': 5, 'partial': 1, 'pending': 25}"
+  },
+  "vector_sha256": {
+    "chain_v1.json": "fbc4eb679297310265d927687842350261a77205851cb0aa667559d1dafdfb16",
+    "ct_reference_v1.json": "0bf74a4bbc8f4120b73da18e0940866632498800bc6d442a346a43805f85c4ef",
+    "jcs_v1.json": "2c6817b0eb185d38b99e2d4c84a39bffdc07b9446ee8407db7e4394f1696440d",
+    "merkle_v1.json": "277c9e41daa3165af4bf8616637aad2ea70ef98db35e7d461f4ff0e5dd709806"
+  },
+  "cargo_lock_sha256": "ce165fcc0ac43d2b0a33009f32903b02d1718251415e03f89fdc62b20b44243c",
+  "verifier_report": {
+    "path": "docs/reports/verifier_g05.md",
+    "sha256": "c374e07721147cd06f9833334f852780dfd849802c0c03e03fe3ee9d601353dc"
+  },
+  "human_signoff": null,
+  "accepted": true
+}

@@ -1,5 +1,8 @@
 //! Statement chain rules (ARC42 v7 §5.2): per-agent seq/prev, intent/outcome pairing, orphans.
-use crate::{canonical::canonicalize, hash::{sha256, to_hex}};
+use crate::{
+    canonical::{canonicalize, CanonError},
+    hash::{sha256, to_hex},
+};
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 
@@ -17,11 +20,61 @@ pub enum ChainError {
     DuplicateOutcome(usize),
     #[error("statement {0}: outcome from a different agent than its intent")]
     AgentMismatch(usize),
+    #[error("statement {0}: schema violation: {1}")]
+    Schema(usize, &'static str),
 }
 
 /// Identifier of a statement: hex SHA-256 of its canonical JSON bytes.
-pub fn statement_id(v: &Value) -> Result<String, serde_json::Error> {
+pub fn statement_id(v: &Value) -> Result<String, CanonError> {
     Ok(to_hex(&sha256(&canonicalize(v)?)))
+}
+
+const KINDS: [&str; 10] = [
+    "intent",
+    "outcome",
+    "policy",
+    "delegation",
+    "artifact",
+    "attestation",
+    "lifecycle",
+    "approval",
+    "settlement",
+    "governance",
+];
+
+fn is_hex64(s: &str) -> bool {
+    s.len() == 64 && s.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+}
+
+/// Schema constants from spec/statement.schema.json that the chain rules rely on.
+/// (`seq` and `prev` forms are enforced by the chain checks below and reported as Field/SeqGap/BadPrev.)
+fn check_schema(i: usize, s: &Value) -> Result<(), ChainError> {
+    if s.get("v").and_then(Value::as_u64) != Some(2) {
+        return Err(ChainError::Schema(i, "v must be 2"));
+    }
+    match s.get("kind").and_then(Value::as_str) {
+        Some(k) if KINDS.contains(&k) => {}
+        _ => return Err(ChainError::Schema(i, "unknown kind")),
+    }
+    match s.pointer("/agent/id").and_then(Value::as_str) {
+        Some(id) if !id.is_empty() => {}
+        _ => return Err(ChainError::Schema(i, "agent.id must be a non-empty string")),
+    }
+    if !s.get("ts").is_some_and(Value::is_string) {
+        return Err(ChainError::Schema(i, "ts must be a string"));
+    }
+    if s.get("kind").and_then(Value::as_str) == Some("outcome")
+        && !s
+            .pointer("/pair/intent_id")
+            .and_then(Value::as_str)
+            .is_some_and(is_hex64)
+    {
+        return Err(ChainError::Schema(
+            i,
+            "outcome requires pair.intent_id (64 lowercase hex)",
+        ));
+    }
+    Ok(())
 }
 
 /// Result of validating a whole log's worth of statements.
@@ -41,10 +94,24 @@ pub fn validate(stmts: &[Value]) -> Result<Report, ChainError> {
     let mut closed: HashSet<String> = HashSet::new();
 
     for (i, s) in stmts.iter().enumerate() {
-        let agent = s.pointer("/agent/id").and_then(Value::as_str).ok_or(ChainError::Field(i, "agent.id"))?.to_string();
-        let seq = s.get("seq").and_then(Value::as_u64).ok_or(ChainError::Field(i, "seq"))?;
-        let prev = s.get("prev").and_then(Value::as_str).ok_or(ChainError::Field(i, "prev"))?;
-        let kind = s.get("kind").and_then(Value::as_str).ok_or(ChainError::Field(i, "kind"))?;
+        let agent = s
+            .pointer("/agent/id")
+            .and_then(Value::as_str)
+            .ok_or(ChainError::Field(i, "agent.id"))?
+            .to_string();
+        let seq = s
+            .get("seq")
+            .and_then(Value::as_u64)
+            .ok_or(ChainError::Field(i, "seq"))?;
+        let prev = s
+            .get("prev")
+            .and_then(Value::as_str)
+            .ok_or(ChainError::Field(i, "prev"))?;
+        let kind = s
+            .get("kind")
+            .and_then(Value::as_str)
+            .ok_or(ChainError::Field(i, "kind"))?;
+        check_schema(i, s)?;
 
         let (want_seq, want_prev) = match last.get(&agent) {
             None => (0, zero.clone()),
@@ -64,7 +131,10 @@ pub fn validate(stmts: &[Value]) -> Result<Report, ChainError> {
                 order.push(id.clone());
             }
             "outcome" => {
-                let iid = s.pointer("/pair/intent_id").and_then(Value::as_str).ok_or(ChainError::Field(i, "pair.intent_id"))?;
+                let iid = s
+                    .pointer("/pair/intent_id")
+                    .and_then(Value::as_str)
+                    .ok_or(ChainError::Field(i, "pair.intent_id"))?;
                 let owner = intents.get(iid).ok_or(ChainError::UnknownIntent(i))?;
                 if *owner != agent {
                     return Err(ChainError::AgentMismatch(i));
@@ -77,6 +147,9 @@ pub fn validate(stmts: &[Value]) -> Result<Report, ChainError> {
         }
         last.insert(agent, (seq, id));
     }
-    let open_intents = order.into_iter().filter(|id| !closed.contains(id)).collect();
+    let open_intents = order
+        .into_iter()
+        .filter(|id| !closed.contains(id))
+        .collect();
     Ok(Report { open_intents })
 }

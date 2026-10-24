@@ -3,8 +3,19 @@ use vc_log::*;
 
 /// Entries of the widely used 8-leaf Certificate Transparency reference tree.
 fn ct_entries() -> Vec<Vec<u8>> {
-    ["", "00", "10", "2021", "3031", "40414243", "5051525354555657", "606162636465666768696a6b6c6d6e6f"]
-        .iter().map(|h| hex::decode(h).unwrap()).collect()
+    [
+        "",
+        "00",
+        "10",
+        "2021",
+        "3031",
+        "40414243",
+        "5051525354555657",
+        "606162636465666768696a6b6c6d6e6f",
+    ]
+    .iter()
+    .map(|h| hex::decode(h).unwrap())
+    .collect()
 }
 
 #[test]
@@ -28,7 +39,9 @@ fn ct_reference_roots() {
 }
 
 fn mk(n: usize) -> Vec<vc_core::Hash> {
-    (0..n).map(|i| vc_core::hash::leaf_hash(format!("entry-{i}").as_bytes())).collect()
+    (0..n)
+        .map(|i| vc_core::hash::leaf_hash(format!("entry-{i}").as_bytes()))
+        .collect()
 }
 
 #[test]
@@ -40,9 +53,16 @@ fn inclusion_all_sizes() {
             let p = inclusion_proof(&l, i).unwrap();
             verify_inclusion(&l[i], i, n, &p, &r).unwrap();
             // negative: wrong index / tampered leaf
-            let mut bad = l[i]; bad[0] ^= 1;
+            let mut bad = l[i];
+            bad[0] ^= 1;
             assert!(verify_inclusion(&bad, i, n, &p, &r).is_err());
-            if n > 1 { assert!(verify_inclusion(&l[i], (i + 1) % n, n, &p, &r).is_err() || n == 1 || (i + 1) % n == i); }
+            if n > 1 {
+                assert!(
+                    verify_inclusion(&l[i], (i + 1) % n, n, &p, &r).is_err()
+                        || n == 1
+                        || (i + 1) % n == i
+                );
+            }
         }
     }
 }
@@ -57,8 +77,12 @@ fn consistency_all_pairs() {
             let p = consistency_proof(&l, m).unwrap();
             verify_consistency(m, n, &rm, &rn, &p).unwrap();
             if m < n {
-                let mut bad = rm; bad[0] ^= 1;
-                assert!(verify_consistency(m, n, &bad, &rn, &p).is_err(), "split-view m={m} n={n}");
+                let mut bad = rm;
+                bad[0] ^= 1;
+                assert!(
+                    verify_consistency(m, n, &bad, &rn, &p).is_err(),
+                    "split-view m={m} n={n}"
+                );
             }
         }
     }
@@ -66,6 +90,9 @@ fn consistency_all_pairs() {
 
 #[test]
 fn empty_root_is_sha256_empty() {
-    assert_eq!(to_hex(&root(&[])), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+    assert_eq!(
+        to_hex(&root(&[])),
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    );
     assert!(from_hex("zz").is_none());
 }

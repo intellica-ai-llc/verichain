@@ -1,12 +1,19 @@
 use ed25519_dalek::SigningKey;
 use vc_cose::*;
 
-fn sk(n: u8) -> SigningKey { SigningKey::from_bytes(&[n; 32]) }
+fn sk(n: u8) -> SigningKey {
+    SigningKey::from_bytes(&[n; 32])
+}
 
 #[test]
 fn roundtrip() {
     let k = sk(1);
-    let msg = sign1(&k, b"agent-1", "application/vc-statement+json", b"{\"v\":2}");
+    let msg = sign1(
+        &k,
+        b"agent-1",
+        "application/vc-statement+json",
+        b"{\"v\":2}",
+    );
     let vk = k.verifying_key();
     let (kid, payload) = verify1(&msg, |id| (id == b"agent-1").then_some(vk)).unwrap();
     assert_eq!(kid, b"agent-1");

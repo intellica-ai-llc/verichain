@@ -39,3 +39,8 @@
 - Added Addenda I (earlier pass) and J (verified standards alignment, assurance path, financial objectives v2).
 - ARC42 v9: standards alignment §3.4, positioning §3.5, A2 verified-inference §4.5, factory §4.6 and Appendix G, ADRs V23–V30, research gate R7, G0.5.
 - MAS v4: LP-2 restricted to ≥15 min, FC-2/SV-1, resolution/manipulation rules, decisions M17–M21.
+
+## 2026-10-24 — G0.5 factory proven on L0
+- Process run: independent vector-author agent (RFC-only, never read the Rust) produced Merkle/JCS/chain vectors; adversarial verifier agent found 15 defects (2 high: witness quorum inflation; operator counted as witness) with failing tests; orchestrator fixed all.
+- New: strict RFC 8785 serializer, strict COSE verification, checkpoint hardening and origin binding, schema constants enforced; `spec/requirements.md` + `tools/factory/trace_check.py`, `tools/factory/bundle.py`, CI workflow, `docs/THREAT_MODEL.md`, acceptance bundle.
+- Result: workspace tests, clippy -D warnings, fmt, traceability all green.

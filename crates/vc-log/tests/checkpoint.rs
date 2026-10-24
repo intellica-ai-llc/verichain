@@ -1,9 +1,22 @@
 use ed25519_dalek::SigningKey;
 use vc_log::checkpoint::*;
 
-fn sk(n: u8) -> SigningKey { SigningKey::from_bytes(&[n; 32]) }
-fn ki(name: &str, s: &SigningKey) -> KeyInfo { KeyInfo { name: name.into(), key: s.verifying_key() } }
-fn cp(size: u64, b: u8) -> Checkpoint { Checkpoint { origin: "vc.example/log1".into(), size, root: [b; 32] } }
+fn sk(n: u8) -> SigningKey {
+    SigningKey::from_bytes(&[n; 32])
+}
+fn ki(name: &str, s: &SigningKey) -> KeyInfo {
+    KeyInfo {
+        name: name.into(),
+        key: s.verifying_key(),
+    }
+}
+fn cp(size: u64, b: u8) -> Checkpoint {
+    Checkpoint {
+        origin: "vc.example/log1".into(),
+        size,
+        root: [b; 32],
+    }
+}
 
 #[test]
 fn text_roundtrip_and_format() {
@@ -29,25 +42,47 @@ fn quorum_and_negatives() {
 
     let n = make(&c, &[("op", &op), ("w1", &w1), ("w2", &w2)]);
     assert_eq!(verify_note(&n, &opk, &ws, 2).unwrap(), c);
-    assert!(matches!(verify_note(&n, &opk, &ws, 3), Err(CheckpointError::Quorum { got: 2, need: 3 })));
+    assert!(matches!(
+        verify_note(&n, &opk, &ws, 3),
+        Err(CheckpointError::Quorum { got: 2, need: 3 })
+    ));
 
     // untrusted cosigner does not count; duplicate signature by the same witness counts once
-    let n2 = make(&c, &[("op", &op), ("w1", &w1), ("w1", &w1), ("evil", &evil)]);
-    assert!(matches!(verify_note(&n2, &opk, &ws, 2), Err(CheckpointError::Quorum { got: 1, need: 2 })));
+    let n2 = make(
+        &c,
+        &[("op", &op), ("w1", &w1), ("w1", &w1), ("evil", &evil)],
+    );
+    assert!(matches!(
+        verify_note(&n2, &opk, &ws, 2),
+        Err(CheckpointError::Quorum { got: 1, need: 2 })
+    ));
 
     // missing operator
     let n3 = make(&c, &[("w1", &w1), ("w2", &w2)]);
-    assert_eq!(verify_note(&n3, &opk, &ws, 2), Err(CheckpointError::NoOperator));
+    assert_eq!(
+        verify_note(&n3, &opk, &ws, 2),
+        Err(CheckpointError::NoOperator)
+    );
 
     // tampered text (root changed) invalidates every signature
     let n4 = n.replacen(&c.text(), &cp(10, 2).text(), 1);
-    assert_eq!(verify_note(&n4, &opk, &ws, 0), Err(CheckpointError::NoOperator));
+    assert_eq!(
+        verify_note(&n4, &opk, &ws, 0),
+        Err(CheckpointError::NoOperator)
+    );
 
     // witness signing a different (stale) checkpoint does not count for this one
     let stale = cp(5, 7);
-    let mut lines = vec![sign_line(&c.text(), "op", &op), sign_line(&stale.text(), "w1", &w1), sign_line(&stale.text(), "w2", &w2)];
+    let mut lines = vec![
+        sign_line(&c.text(), "op", &op),
+        sign_line(&stale.text(), "w1", &w1),
+        sign_line(&stale.text(), "w2", &w2),
+    ];
     let n5 = note(&c.text(), &lines);
-    assert!(matches!(verify_note(&n5, &opk, &ws, 1), Err(CheckpointError::Quorum { got: 0, need: 1 })));
+    assert!(matches!(
+        verify_note(&n5, &opk, &ws, 1),
+        Err(CheckpointError::Quorum { got: 0, need: 1 })
+    ));
     lines.clear();
 }
 

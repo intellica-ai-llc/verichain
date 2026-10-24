@@ -6,7 +6,7 @@
   "required": ["v", "kind", "agent", "seq", "prev", "ts"],
   "properties": {
     "v": {"const": 2},
-    "kind": {"enum": ["intent", "outcome", "policy", "delegation", "artifact", "attestation"]},
+    "kind": {"enum": ["intent", "outcome", "policy", "delegation", "artifact", "attestation", "lifecycle", "approval", "settlement", "governance"]},
     "agent": {"type": "object", "required": ["id"], "properties": {
       "id": {"type": "string", "minLength": 1},
       "runtime": {"type": "object", "properties": {"kind": {"enum": ["asl", "gateway", "signer", "sdk"]}, "version": {"type": "string"}}}}},

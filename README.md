@@ -2,7 +2,7 @@
 
 **A platform where autonomous agents run, transact and are held accountable.** Everything an agent is authorized to do and does is recorded in a witnessed, append-only, post-quantum-ready log that anyone can verify offline. Agents run on VeriChain (strongest evidence) or beside it (gateway/signer).
 
-> Status: **specs at production grade (v9 / MAS v4), awaiting approval; L0 code started** (`vc-core`, `vc-log`, `vc-cose` pass tests). The previous contents of this repository (an ASL toolchain copy and the v6 "agent economy" architecture) are preserved on branch `archive/pre-reset-2026-10-23`. The ASL language lives at https://github.com/agentseedlanguage-cpu/agentseed.
+> Status: **specs at production grade (v9 / MAS v4), awaiting approval; L0 crates `vc-core`, `vc-log`, `vc-cose` built and adversarially verified (G0.5); G1 freeze awaiting approval. The previous contents of this repository (an ASL toolchain copy and the v6 "agent economy" architecture) are preserved on branch `archive/pre-reset-2026-10-23`. The ASL language lives at https://github.com/agentseedlanguage-cpu/agentseed.
 
 ## Why
 Agents now act with money, data and authority, and most "audit trails" are self-signed logs that can be bypassed or rewritten. VeriChain aims to provide:

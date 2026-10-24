@@ -55,7 +55,13 @@ pub fn inclusion_proof(leaves: &[Hash], m: usize) -> Result<Vec<Hash>, ProofErro
 }
 
 /// Verify inclusion (RFC 9162 §2.1.3.2).
-pub fn verify_inclusion(leaf: &Hash, index: usize, size: usize, path: &[Hash], expected_root: &Hash) -> Result<(), ProofError> {
+pub fn verify_inclusion(
+    leaf: &Hash,
+    index: usize,
+    size: usize,
+    path: &[Hash],
+    expected_root: &Hash,
+) -> Result<(), ProofError> {
     if index >= size {
         return Err(ProofError::Range);
     }
@@ -79,7 +85,11 @@ pub fn verify_inclusion(leaf: &Hash, index: usize, size: usize, path: &[Hash], e
         fnum >>= 1;
         snum >>= 1;
     }
-    if snum == 0 && r == *expected_root { Ok(()) } else { Err(ProofError::Invalid) }
+    if snum == 0 && r == *expected_root {
+        Ok(())
+    } else {
+        Err(ProofError::Invalid)
+    }
 }
 
 /// Consistency proof between the first `m` leaves and all `leaves` (RFC 9162 §2.1.4.1).
@@ -108,12 +118,22 @@ pub fn consistency_proof(leaves: &[Hash], m: usize) -> Result<Vec<Hash>, ProofEr
 }
 
 /// Verify consistency (RFC 9162 §2.1.4.2).
-pub fn verify_consistency(first: usize, second: usize, first_root: &Hash, second_root: &Hash, proof: &[Hash]) -> Result<(), ProofError> {
+pub fn verify_consistency(
+    first: usize,
+    second: usize,
+    first_root: &Hash,
+    second_root: &Hash,
+    proof: &[Hash],
+) -> Result<(), ProofError> {
     if first == 0 || first > second {
         return Err(ProofError::Range);
     }
     if first == second {
-        return if proof.is_empty() && first_root == second_root { Ok(()) } else { Err(ProofError::Invalid) };
+        return if proof.is_empty() && first_root == second_root {
+            Ok(())
+        } else {
+            Err(ProofError::Invalid)
+        };
     }
     let mut path: Vec<Hash> = Vec::with_capacity(proof.len() + 1);
     if first.is_power_of_two() {
@@ -148,5 +168,9 @@ pub fn verify_consistency(first: usize, second: usize, first_root: &Hash, second
         fnum >>= 1;
         snum >>= 1;
     }
-    if fr == *first_root && sr == *second_root && snum == 0 { Ok(()) } else { Err(ProofError::Invalid) }
+    if fr == *first_root && sr == *second_root && snum == 0 {
+        Ok(())
+    } else {
+        Err(ProofError::Invalid)
+    }
 }

@@ -6,8 +6,8 @@ Rule: design gates first; no code before the G1 spec is approved by Damain.
 | Gate | Scope | Done when |
 |---|---|---|
 | G0 | Repo reset, standard files, SOURCES | done |
-| G0.5 | Engineering factory ready: roles, harness, CI gates, traceability, acceptance bundles (ARC42 v9 App. G) | factory re-derives `vc-log` end to end with independent vectors and differential tests |
-| G1 | Spec freeze: schema, vectors, requirements, threat model | **in progress** (vc-core, vc-log, vc-cose pass tests) |
+| G0.5 | Engineering factory ready: roles, harness, CI gates, traceability, acceptance bundles (ARC42 v9 App. G) | **DONE 2026-10-24**: independent vector author + adversarial verifier found 15 defects (2 high); all fixed; differential vectors agree; bundle `factory/bundles/g05-l0-crates.json` |
+| G1 | Spec freeze: schema, vectors, requirements, threat model | **ready for owner approval**: `spec/statement.schema.json`, `spec/vectors/`, `spec/requirements.md`, `docs/THREAT_MODEL.md` |
 | G2 | Tile log + `vcd` sequencer + checkpoints | crash/limits tests; <1 GB RAM |
 | G3 | Witnesses + split-view detection | ≥2 independent witnesses |
 | G4 | Anchors + COSE receipts + verifier CLI/WASM + evidence packs | offline verify; interop vector |
