@@ -44,7 +44,7 @@ fn mth_slice(h: &[Hash]) -> Hash {
 }
 
 fn split_hashes(b: &[u8]) -> Res<Vec<Hash>> {
-    if b.len() % 32 != 0 {
+    if !b.len().is_multiple_of(32) {
         return Err(StoreError::Corrupt("hash tile length".into()));
     }
     Ok(b.chunks_exact(32).map(|c| c.try_into().unwrap()).collect())
@@ -328,7 +328,7 @@ impl<S: TileStore> TileLog<S> {
         if n == 0 {
             return Ok(sha256(b""));
         }
-        if n.is_power_of_two() && a % n == 0 {
+        if n.is_power_of_two() && a.is_multiple_of(n) {
             return self.subtree(n.trailing_zeros(), a / n);
         }
         let k = largest_pow2_below(n);
