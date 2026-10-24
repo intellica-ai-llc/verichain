@@ -1,0 +1,8 @@
+[package]
+name = "vc-witness"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "VeriChain vc-witness (skeleton; see spec/contracts/L0.md)"
+
+[dependencies]

@@ -412,6 +412,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563"
 
 [[package]]
+name = "vc-aat"
+version = "0.0.1"
+
+[[package]]
+name = "vc-anchor"
+version = "0.0.1"
+
+[[package]]
 name = "vc-core"
 version = "0.0.1"
 dependencies = [
@@ -446,6 +454,26 @@ dependencies = [
  "thiserror",
  "vc-core",
 ]
+
+[[package]]
+name = "vc-sdk"
+version = "0.0.1"
+
+[[package]]
+name = "vc-seq"
+version = "0.0.1"
+
+[[package]]
+name = "vc-store"
+version = "0.0.1"
+
+[[package]]
+name = "vc-verify"
+version = "0.0.1"
+
+[[package]]
+name = "vc-witness"
+version = "0.0.1"
 
 [[package]]
 name = "version_check"
