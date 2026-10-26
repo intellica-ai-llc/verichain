@@ -500,6 +500,7 @@ fn holds_boundary_consistency_all_pairs_and_historic_inclusion() {
 
 /// Dense exhaustive sweep around the first two tile boundaries.
 #[test]
+#[ignore = "slow (~60s debug); runs in nightly CI with --include-ignored"]
 fn holds_dense_sweep_around_tile_edges() {
     let mut log = TileLog::open(MemStore::new()).unwrap();
     build_in_chunks(&mut log, 0, 530, 53);
@@ -715,6 +716,7 @@ fn observe_stale_partial_tiles_accumulate() {
 /// FINDING ST-5. open() must not cost O(total stored bytes) of I/O just to learn the size, and recovery from lost
 /// hash tiles must not be quadratic. Budgets are generous (debug build).
 #[test]
+#[ignore = "perf; nightly CI with --include-ignored"]
 fn perf_open_and_recover_70k_entries() {
     let shared = Shared::new();
     let mut log = TileLog::open(shared.clone()).unwrap();

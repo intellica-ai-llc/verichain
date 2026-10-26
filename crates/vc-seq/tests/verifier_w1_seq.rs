@@ -590,6 +590,7 @@ fn bug_unusable_origin_or_operator_name_is_not_rejected() {
 
 /// Time a 100k-statement run. Reports numbers; asserts only against pathological (quadratic) behaviour.
 #[test]
+#[ignore = "perf (>150s debug, ~14s release); nightly CI with --release --include-ignored"]
 fn perf_100k_submit_batch_and_reopen() {
     const AGENTS: usize = 500;
     const PER: usize = 200;

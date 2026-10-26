@@ -1,5 +1,10 @@
 name: ci
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -16,3 +21,10 @@ jobs:
         run: |
           for g in merkle chain jcs; do python3 tools/vectors/gen_$g.py; done
           git diff --exit-code spec/vectors
+  nightly-long:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --workspace --release --no-fail-fast -- --include-ignored
