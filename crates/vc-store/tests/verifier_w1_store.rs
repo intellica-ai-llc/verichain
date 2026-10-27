@@ -79,7 +79,11 @@ impl Reference {
     fn subproof(&self, m: usize, a: usize, b: usize, complete: bool) -> Vec<Hash> {
         let n = b - a;
         if m == n {
-            return if complete { vec![] } else { vec![self.mth(a, b)] };
+            return if complete {
+                vec![]
+            } else {
+                vec![self.mth(a, b)]
+            };
         }
         let k = pow2_below(n);
         if m <= k {
@@ -175,14 +179,18 @@ fn holds_crash_at_every_put_reopens_to_consistent_prefix() {
                 Ok(re) => {
                     let sz = re.size() as usize;
                     if sz < base || sz > base + batch {
-                        violations.push(format!("{ctx}: reopened size {sz} outside [{base},{}]", base + batch));
+                        violations.push(format!(
+                            "{ctx}: reopened size {sz} outside [{base},{}]",
+                            base + batch
+                        ));
                         continue;
                     }
                     if matches!(r, Ok(Ok(_))) && sz != base + batch {
                         violations.push(format!("{ctx}: append acked but reopened size {sz}"));
                     }
                     if re.root().ok() != Some(p.reference.root(sz)) {
-                        violations.push(format!("{ctx}: root at size {sz} != independent reference"));
+                        violations
+                            .push(format!("{ctx}: root at size {sz} != independent reference"));
                     }
                     for i in [0usize, sz / 2, sz.saturating_sub(1)] {
                         if i < sz {
@@ -206,7 +214,12 @@ fn holds_crash_at_every_put_reopens_to_consistent_prefix() {
             }
         }
     }
-    assert!(violations.is_empty(), "{} violations, first: {:#?}", violations.len(), &violations[..violations.len().min(8)]);
+    assert!(
+        violations.is_empty(),
+        "{} violations, first: {:#?}",
+        violations.len(),
+        &violations[..violations.len().min(8)]
+    );
 }
 
 /// FINDING ST-1. A failed `append_batch` must leave the live instance consistent with the store (size == durable
@@ -231,13 +244,18 @@ fn bug_failed_append_leaves_instance_consistent_with_store() {
             let durable = TileLog::open(p.shared.clone()).unwrap().size();
             let ctx = format!("base={base} batch={batch} fail_after={k}");
             if log.size() != durable {
-                violations.push(format!("{ctx}: live size {} != durable size {durable}", log.size()));
+                violations.push(format!(
+                    "{ctx}: live size {} != durable size {durable}",
+                    log.size()
+                ));
                 continue;
             }
             let got = catch_unwind(AssertUnwindSafe(|| log.root()));
             match got {
                 Err(_) => violations.push(format!("{ctx}: root() PANICS after failed append")),
-                Ok(Err(e)) => violations.push(format!("{ctx}: root() errors after failed append: {e}")),
+                Ok(Err(e)) => {
+                    violations.push(format!("{ctx}: root() errors after failed append: {e}"))
+                }
                 Ok(Ok(root)) if root != p.reference.root(durable as usize) => {
                     violations.push(format!("{ctx}: live root != reference at durable size"))
                 }
@@ -245,7 +263,12 @@ fn bug_failed_append_leaves_instance_consistent_with_store() {
             }
         }
     }
-    assert!(violations.is_empty(), "{} violations, first: {:#?}", violations.len(), &violations[..violations.len().min(8)]);
+    assert!(
+        violations.is_empty(),
+        "{} violations, first: {:#?}",
+        violations.len(),
+        &violations[..violations.len().min(8)]
+    );
 }
 
 /// FINDING ST-1 (consequence). After a failed batch the caller was told "error"; a later successful append on the
@@ -270,14 +293,21 @@ fn bug_retry_after_failed_append_agrees_with_reopen() {
             let w = b"after-failure".to_vec();
             let res = catch_unwind(AssertUnwindSafe(|| log.append(&w)));
             let Ok(Ok(idx)) = res else {
-                violations.push(format!("{ctx}: append after failure did not succeed cleanly"));
+                violations.push(format!(
+                    "{ctx}: append after failure did not succeed cleanly"
+                ));
                 continue;
             };
             let live_size = log.size();
-            let live_root = catch_unwind(AssertUnwindSafe(|| log.root())).ok().and_then(|r| r.ok());
+            let live_root = catch_unwind(AssertUnwindSafe(|| log.root()))
+                .ok()
+                .and_then(|r| r.ok());
             let fresh = TileLog::open(p.shared.clone()).unwrap();
             if fresh.size() != live_size || Some(fresh.root().unwrap()) != live_root {
-                violations.push(format!("{ctx}: live (size {live_size}) != reopen (size {})", fresh.size()));
+                violations.push(format!(
+                    "{ctx}: live (size {live_size}) != reopen (size {})",
+                    fresh.size()
+                ));
             }
             // whatever the store holds must be internally consistent with the entries it contains
             let ents: Vec<Vec<u8>> = (0..fresh.size()).map(|i| fresh.entry(i).unwrap()).collect();
@@ -286,11 +316,18 @@ fn bug_retry_after_failed_append_agrees_with_reopen() {
                 violations.push(format!("{ctx}: reopened root != root of its own entries"));
             }
             if fresh.entry(idx).ok() != Some(w) {
-                violations.push(format!("{ctx}: acked append idx {idx} not found after reopen"));
+                violations.push(format!(
+                    "{ctx}: acked append idx {idx} not found after reopen"
+                ));
             }
         }
     }
-    assert!(violations.is_empty(), "{} violations, first: {:#?}", violations.len(), &violations[..violations.len().min(8)]);
+    assert!(
+        violations.is_empty(),
+        "{} violations, first: {:#?}",
+        violations.len(),
+        &violations[..violations.len().min(8)]
+    );
 }
 
 /// FINDING ST-8 (Low). A hash tile that is torn (length not a multiple of 32) on the open path makes `open` fail
@@ -306,7 +343,8 @@ fn bug_torn_edge_hash_tile_should_be_recovered_not_fatal() {
     let mut b = shared.raw_get(&p).expect("edge tile exists");
     b.pop();
     shared.raw_put(&p, &b);
-    let re = TileLog::open(shared.clone()).expect("torn derived tile must be recoverable from the entries");
+    let re = TileLog::open(shared.clone())
+        .expect("torn derived tile must be recoverable from the entries");
     assert_eq!(re.root().unwrap(), want);
 }
 
@@ -315,7 +353,9 @@ fn bug_torn_edge_hash_tile_should_be_recovered_not_fatal() {
 // ---------------------------------------------------------------------------------------------------------
 
 fn flip(shared: &Shared, path: &str, at: usize) {
-    let mut b = shared.raw_get(path).unwrap_or_else(|| panic!("no {path}; have {:?}", shared.paths()));
+    let mut b = shared
+        .raw_get(path)
+        .unwrap_or_else(|| panic!("no {path}; have {:?}", shared.paths()));
     b[at] ^= 0x01;
     shared.raw_put(path, &b);
 }
@@ -328,7 +368,9 @@ fn proofs_never_silently_bogus(log: &TileLog<Shared>, rf: &Reference, size: usiz
             Err(_) => {}
             Ok(p) => {
                 if p != rf.inclusion(i, size) {
-                    bad.push(format!("inclusion({i},{size}) returned a wrong proof silently"));
+                    bad.push(format!(
+                        "inclusion({i},{size}) returned a wrong proof silently"
+                    ));
                 }
             }
         }
@@ -358,7 +400,12 @@ fn bug_tampered_full_hash_tile_is_detected() {
         Err(_) => {}
         Ok(re) => {
             let bad = proofs_never_silently_bogus(&re, &rf, 600);
-            assert!(bad.is_empty(), "{} silent bogus answers, e.g. {:?}", bad.len(), &bad[..bad.len().min(3)]);
+            assert!(
+                bad.is_empty(),
+                "{} silent bogus answers, e.g. {:?}",
+                bad.len(),
+                &bad[..bad.len().min(3)]
+            );
         }
     }
 }
@@ -401,7 +448,10 @@ fn bug_tampered_entry_bundle_is_detected() {
                 (Err(_), _) | (_, Err(_)) => true,
                 (Ok(e), Ok(h)) => leaf_hash(&e) == h,
             };
-            assert!(consistent, "entry 0 content disagrees with its leaf hash in the tile and no error is raised");
+            assert!(
+                consistent,
+                "entry 0 content disagrees with its leaf hash in the tile and no error is raised"
+            );
         }
     }
 }
@@ -423,8 +473,15 @@ fn bug_short_full_entry_bundle_rejected_at_open() {
     match TileLog::open(shared.clone()) {
         Err(_) => {}
         Ok(re) => {
+            // Disposition (orchestrator, W1 fix round): open() is O(1) in log size (ST-5), so interior bundles are not
+            // read at open. The truncation must instead be reported by the deep audit (and by Sequencer::open, which
+            // scans every entry), and entry() must never return wrong data.
             let all_readable = (0..re.size()).all(|i| re.entry(i).is_ok());
-            assert!(all_readable, "open succeeded with size {} but some entries are unreadable", re.size());
+            assert!(
+                all_readable || re.verify_integrity().is_err(),
+                "open succeeded with size {}, some entries unreadable, and verify_integrity() is silent",
+                re.size()
+            );
         }
     }
 }
@@ -433,7 +490,9 @@ fn bug_short_full_entry_bundle_rejected_at_open() {
 // 3. Boundary sizes and proof sweeps against the independent reference
 // ---------------------------------------------------------------------------------------------------------
 
-const BOUNDARY: &[usize] = &[0, 1, 2, 255, 256, 257, 511, 512, 513, 65535, 65536, 65537, 70000];
+const BOUNDARY: &[usize] = &[
+    0, 1, 2, 255, 256, 257, 511, 512, 513, 65535, 65536, 65537, 70000,
+];
 
 /// Grow ONE log through every boundary size with awkward batch sizes; at each stop compare root, reopen, and
 /// sample inclusion proofs against the independent reference.
@@ -486,7 +545,7 @@ fn holds_boundary_consistency_all_pairs_and_historic_inclusion() {
         for &m in BOUNDARY.iter().filter(|&&m| m > 0 && m <= n) {
             let got = log.consistency_proof(m as u64, n as u64).unwrap();
             assert_eq!(got, rf.consistency(m, n), "consistency {m}->{n}");
-            vc_log::verify_consistency(m as usize, n as usize, &rf.root(m), &rf.root(n), &got)
+            vc_log::verify_consistency(m, n, &rf.root(m), &rf.root(n), &got)
                 .unwrap_or_else(|e| panic!("vc-log rejects store proof {m}->{n}: {e:?}"));
         }
         for i in [0usize, n / 3, n / 2, n - 1] {
@@ -511,10 +570,18 @@ fn holds_dense_sweep_around_tile_edges() {
     for &n in &sizes {
         assert_eq!(log.root_at(n as u64).unwrap(), rf.root(n), "root {n}");
         for i in 0..n {
-            assert_eq!(log.inclusion_proof(i as u64, n as u64).unwrap(), rf.inclusion(i, n), "incl {i}/{n}");
+            assert_eq!(
+                log.inclusion_proof(i as u64, n as u64).unwrap(),
+                rf.inclusion(i, n),
+                "incl {i}/{n}"
+            );
         }
         for m in 1..=n {
-            assert_eq!(log.consistency_proof(m as u64, n as u64).unwrap(), rf.consistency(m, n), "cons {m}->{n}");
+            assert_eq!(
+                log.consistency_proof(m as u64, n as u64).unwrap(),
+                rf.consistency(m, n),
+                "cons {m}->{n}"
+            );
         }
     }
 }
@@ -525,10 +592,22 @@ fn holds_range_arguments_never_panic() {
     let mut log = TileLog::open(MemStore::new()).unwrap();
     build_in_chunks(&mut log, 0, 300, 300);
     let r = catch_unwind(AssertUnwindSafe(|| {
-        for &(i, n) in &[(0u64, 0u64), (u64::MAX, u64::MAX), (299, 301), (300, 300), (0, u64::MAX)] {
+        for &(i, n) in &[
+            (0u64, 0u64),
+            (u64::MAX, u64::MAX),
+            (299, 301),
+            (300, 300),
+            (0, u64::MAX),
+        ] {
             assert!(log.inclusion_proof(i, n).is_err());
         }
-        for &(m, n) in &[(0u64, 0u64), (1, 0), (u64::MAX, u64::MAX), (1, 301), (301, 300)] {
+        for &(m, n) in &[
+            (0u64, 0u64),
+            (1, 0),
+            (u64::MAX, u64::MAX),
+            (1, 301),
+            (301, 300),
+        ] {
             assert!(log.consistency_proof(m, n).is_err());
         }
         assert!(log.root_at(u64::MAX).is_err());
@@ -552,7 +631,10 @@ fn holds_entry_size_limits_and_atomic_refusal() {
     assert_eq!(log.entry(1).unwrap(), big);
     let root = log.root().unwrap();
     let too = vec![0u8; 65536];
-    assert!(matches!(log.append_batch(&[b"ok".as_slice(), too.as_slice()]), Err(StoreError::TooLarge)));
+    assert!(matches!(
+        log.append_batch(&[b"ok".as_slice(), too.as_slice()]),
+        Err(StoreError::TooLarge)
+    ));
     assert_eq!(log.size(), 2);
     assert_eq!(log.root().unwrap(), root);
 }
@@ -595,10 +677,19 @@ fn bug_fsstore_concurrent_put_same_path_collides() {
     }
     let errs = errors.lock().unwrap().clone();
     let fin = st.get("tile/0/000").unwrap().unwrap();
-    let whole = payloads.iter().any(|p| *p == fin);
+    let whole = payloads.contains(&fin);
     let _ = std::fs::remove_dir_all(&dir);
-    assert!(errs.is_empty(), "{} put errors, e.g. {:?}", errs.len(), &errs[..errs.len().min(2)]);
-    assert!(whole, "final file is not any writer's complete payload (len {})", fin.len());
+    assert!(
+        errs.is_empty(),
+        "{} put errors, e.g. {:?}",
+        errs.len(),
+        &errs[..errs.len().min(2)]
+    );
+    assert!(
+        whole,
+        "final file is not any writer's complete payload (len {})",
+        fin.len()
+    );
 }
 
 /// Readers must never see a partial file while a single writer alternates payloads (atomic rename).
@@ -613,7 +704,8 @@ fn holds_fsstore_reader_never_sees_partial_file() {
         let (st, stop, a, b) = (st.clone(), stop.clone(), a.clone(), b.clone());
         std::thread::spawn(move || {
             for i in 0..300 {
-                st.put("tile/0/000", if i % 2 == 0 { &b } else { &a }).unwrap();
+                st.put("tile/0/000", if i % 2 == 0 { &b } else { &a })
+                    .unwrap();
             }
             stop.store(true, std::sync::atomic::Ordering::SeqCst);
         })
@@ -653,7 +745,10 @@ fn holds_fsstore_rejects_path_traversal_keys() {
     }
     assert_eq!(std::fs::read(dir.join("secret")).unwrap(), b"s");
     // nothing escaped the root
-    let escaped: Vec<_> = std::fs::read_dir(&dir).unwrap().map(|e| e.unwrap().file_name()).collect();
+    let escaped: Vec<_> = std::fs::read_dir(&dir)
+        .unwrap()
+        .map(|e| e.unwrap().file_name())
+        .collect();
     assert_eq!(escaped.len(), 2, "{escaped:?}");
     let _ = std::fs::remove_dir_all(&dir);
 }
@@ -674,13 +769,17 @@ fn bug_two_writers_on_one_dir_lose_acknowledged_appends() {
     let eb: Vec<Vec<u8>> = (0..2).map(|i| format!("B{i}").into_bytes()).collect();
     a.append_batch(&refs(&ea)).unwrap();
     let rb = b.append_batch(&refs(&eb)); // B has no idea A wrote
-    // ... or B's append must fail; it must never be acknowledged and then vanish.
+                                         // ... or B's append must fail; it must never be acknowledged and then vanish.
     if rb.is_ok() {
         let re = TileLog::open(FsStore::new(&dir).unwrap()).unwrap();
         let all: Vec<Vec<u8>> = (0..re.size()).map(|i| re.entry(i).unwrap()).collect();
         let _ = std::fs::remove_dir_all(&dir);
         for e in ea.iter().chain(eb.iter()) {
-            assert!(all.contains(e), "acknowledged entry {:?} lost after two-writer interleave", String::from_utf8_lossy(e));
+            assert!(
+                all.contains(e),
+                "acknowledged entry {:?} lost after two-writer interleave",
+                String::from_utf8_lossy(e)
+            );
         }
     } else {
         let _ = std::fs::remove_dir_all(&dir);
@@ -741,7 +840,10 @@ fn perf_open_and_recover_70k_entries() {
     let t_rec = t.elapsed();
     assert_eq!(rec.root().unwrap(), want);
     eprintln!("PERF: open(70k x 600B) = {t_open:?}; recover-from-entries = {t_rec:?}");
-    assert!(t_rec.as_secs() < 60, "recovery of 70k entries took {t_rec:?}");
+    assert!(
+        t_rec.as_secs() < 60,
+        "recovery of 70k entries took {t_rec:?}"
+    );
 }
 
 #[test]

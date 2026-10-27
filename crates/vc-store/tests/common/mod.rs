@@ -39,7 +39,10 @@ impl Shared {
         *self.m.lock().unwrap() = s.clone();
     }
     pub fn raw_put(&self, path: &str, data: &[u8]) {
-        self.m.lock().unwrap().insert(path.to_string(), data.to_vec());
+        self.m
+            .lock()
+            .unwrap()
+            .insert(path.to_string(), data.to_vec());
     }
     pub fn raw_get(&self, path: &str) -> Option<Vec<u8>> {
         self.m.lock().unwrap().get(path).cloned()
@@ -68,7 +71,10 @@ impl TileStore for Shared {
             self.budget.store(b - 1, Ordering::SeqCst);
         }
         self.puts.fetch_add(1, Ordering::SeqCst);
-        self.m.lock().unwrap().insert(path.to_string(), data.to_vec());
+        self.m
+            .lock()
+            .unwrap()
+            .insert(path.to_string(), data.to_vec());
         Ok(())
     }
 }

@@ -57,6 +57,7 @@ fn registry(agents: &[&Agent], max: u8) -> Registry {
                 key: a.key.verifying_key(),
                 agent_id: a.id.clone(),
                 max_completeness: max,
+                max_assurance: max,
             },
         );
     }
