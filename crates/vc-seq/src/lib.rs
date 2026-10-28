@@ -191,7 +191,11 @@ impl<S: TileStore> Sequencer<S> {
         &self.log
     }
 
+    /// Open intents of the durable log; empty while poisoned (state unknown until reconciled).
     pub fn open_intents(&self) -> Vec<String> {
+        if self.poisoned.is_some() {
+            return Vec::new();
+        }
         self.chain.open_intents()
     }
 
@@ -351,7 +355,12 @@ impl<S: TileStore> Sequencer<S> {
                             self.chain = chain;
                             self.by_leaf = by_leaf;
                         }
-                        Err(re) => self.poisoned = Some(re.to_string()),
+                        Err(re) => {
+                            // drop the speculative (non-durable) state so nothing stale can be observed
+                            self.chain = ChainState::new();
+                            self.by_leaf.clear();
+                            self.poisoned = Some(re.to_string());
+                        }
                     }
                     let failed = accepted
                         .iter()

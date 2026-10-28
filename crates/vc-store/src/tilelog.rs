@@ -2,7 +2,7 @@
 use crate::store::TileStore;
 use crate::tile::*;
 use std::borrow::Cow;
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::sync::Mutex;
 use vc_core::hash::{leaf_hash, node_hash, sha256, to_hex, Hash};
 
@@ -41,8 +41,9 @@ pub struct TileLog<S: TileStore> {
     commit: Option<Vec<u8>>,
     /// A commit write failed with an indeterminate outcome; verify the store before the next append.
     dirty: bool,
-    /// Full hash tiles already checked against their parent hash.
-    verified: Mutex<HashSet<(u32, u64)>>,
+    /// Full hash tiles already checked against their parent hash, keyed to the digest of the verified bytes (a
+    /// re-read with different bytes is verified again).
+    verified: Mutex<HashMap<(u32, u64), Hash>>,
 }
 
 fn commit_bytes(size: u64, root: &Hash) -> Vec<u8> {
@@ -136,7 +137,7 @@ impl<S: TileStore> TileLog<S> {
             entry_edge: Vec::new(),
             commit: None,
             dirty: false,
-            verified: Mutex::new(HashSet::new()),
+            verified: Mutex::new(HashMap::new()),
         };
         match log.store.get(COMMIT_PATH)? {
             Some(b) => {
@@ -167,13 +168,6 @@ impl<S: TileStore> TileLog<S> {
                 log.size = log.scan_size()?;
                 if !(log.load_edges()? && log.edge0_matches_bundle()) {
                     log.recover()?;
-                }
-                if log.size == 0 {
-                    // new log: pin the empty state so later crashes cannot be mistaken for content
-                    let bytes = commit_bytes(0, &sha256(b""));
-                    if log.store.put(COMMIT_PATH, &bytes).is_ok() {
-                        log.commit = Some(bytes);
-                    }
                 }
             }
         }
@@ -391,13 +385,23 @@ impl<S: TileStore> TileLog<S> {
             return Ok((first, first));
         }
         self.store.lock_writer()?;
-        if self.dirty {
-            if self.store.get(COMMIT_PATH)? != self.commit {
-                return Err(StoreError::Conflict(
-                    "indeterminate commit after a failed append; reopen the log".into(),
-                ));
-            }
-            self.dirty = false;
+        // fence: the store must still be at the commit this instance last saw, checked BEFORE any write so a stale
+        // writer cannot clobber same-path tiles of a newer committed state
+        if self.store.get(COMMIT_PATH)? != self.commit {
+            return Err(StoreError::Conflict(if self.dirty {
+                "indeterminate commit after a failed append; reopen the log".into()
+            } else {
+                "commit record changed underneath this writer (stale or second writer); reopen"
+                    .into()
+            }));
+        }
+        self.dirty = false;
+        if self.commit.is_none() {
+            // new or pre-commit store: pin the current state BEFORE any entry lands, so a failed or crashed
+            // append can never be mistaken for content by size inference
+            let bytes = commit_bytes(self.size, &self.root()?);
+            self.store.put(COMMIT_PATH, &bytes)?;
+            self.commit = Some(bytes);
         }
         // 1. entry bundles (source of truth), built on local state
         let mut bundle = self.entry_edge.clone();
@@ -538,7 +542,8 @@ impl<S: TileStore> TileLog<S> {
         if h.len() as u64 != TILE_WIDTH {
             return Err(StoreError::Corrupt("hash tile width".into()));
         }
-        if !self.verified.lock().unwrap().contains(&(l, n)) {
+        let digest = sha256(&b);
+        if self.verified.lock().unwrap().get(&(l, n)) != Some(&digest) {
             if l as usize + 1 >= MAX_LEVELS {
                 return Err(StoreError::Corrupt("hash tile level".into()));
             }
@@ -548,7 +553,7 @@ impl<S: TileStore> TileLog<S> {
                     "hash tile does not match its parent hash".into(),
                 ));
             }
-            self.verified.lock().unwrap().insert((l, n));
+            self.verified.lock().unwrap().insert((l, n), digest);
         }
         Ok(h)
     }
