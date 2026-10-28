@@ -1,0 +1,8 @@
+[package]
+name = "vc-pack"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "VeriChain vc-pack (skeleton; see spec/contracts/L0.md)"
+
+[dependencies]

@@ -1,0 +1,8 @@
+[package]
+name = "vcd"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "VeriChain vcd (skeleton; see spec/contracts/L0.md)"
+
+[dependencies]
