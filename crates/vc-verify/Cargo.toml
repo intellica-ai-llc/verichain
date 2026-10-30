@@ -3,6 +3,26 @@ name = "vc-verify"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "VeriChain vc-verify (skeleton; see spec/contracts/L0.md)"
+description = "VeriChain verifier: evidence packs and receipts, offline and deterministic (lib + CLI vcv + WASM-ready)"
+
+[features]
+default = ["cli"]
+# Builds the `vcv` binary (uses std::fs / std::io / std::env; the library itself never does).
+cli = []
+# Exposes `vc_verify::wasm::verify_pack_json`, the single pure entry point for a later wasm wrapper.
+wasm = []
+
+[[bin]]
+name = "vcv"
+path = "src/bin/vcv.rs"
+required-features = ["cli"]
 
 [dependencies]
+vc-core = { path = "../vc-core" }
+vc-cose = { path = "../vc-cose" }
+vc-log = { path = "../vc-log" }
+ed25519-dalek.workspace = true
+hex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true

@@ -3,6 +3,24 @@ name = "vc-anchor"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "VeriChain vc-anchor (skeleton; see spec/contracts/L0.md)"
+description = "VeriChain trusted-time anchoring library: RFC 3161 + OpenTimestamps parsing/verification and source-independent scheduling (FR-L0-09)"
 
 [dependencies]
+der = { version = "0.7", features = ["alloc", "oid", "std"] }
+cms = "0.2"
+x509-cert = "0.2"
+spki = "0.7"
+const-oid = { version = "0.9", features = ["db"] }
+rsa = { version = "0.9", default-features = false, features = ["std", "sha2"] }
+p256 = { version = "0.13", default-features = false, features = ["ecdsa", "std"] }
+p384 = { version = "0.13", default-features = false, features = ["ecdsa", "std"] }
+ecdsa = { version = "0.16", default-features = false, features = ["verify", "std"] }
+sha2.workspace = true
+sha1 = "0.10"
+ripemd = "0.1"
+thiserror.workspace = true
+
+[dev-dependencies]
+rsa = { version = "0.9", features = ["std", "sha2", "pem"] }
+p256 = { version = "0.13", features = ["ecdsa", "pem", "std"] }
+hex.workspace = true

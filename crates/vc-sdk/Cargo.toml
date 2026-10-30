@@ -3,6 +3,35 @@ name = "vc-sdk"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "VeriChain vc-sdk (skeleton; see spec/contracts/L0.md)"
+description = "VeriChain client SDK: statement builder, commitments, emitter with idempotent submit/retry (FR-L0-07 client side)"
+
+[features]
+default = ["seq-transport"]
+# In-process adapter over vc_seq::Sequencer (tests, embedding). Production clients: default-features = false.
+seq-transport = ["dep:vc-seq", "dep:vc-store"]
+# Optional OS entropy source for salts. Core logic only sees the `SaltSource` trait.
+os-rng = ["dep:getrandom"]
 
 [dependencies]
+vc-core = { path = "../vc-core" }
+vc-cose = { path = "../vc-cose" }
+vc-seq = { path = "../vc-seq", optional = true }
+vc-store = { path = "../vc-store", optional = true }
+ed25519-dalek.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+hex.workspace = true
+thiserror.workspace = true
+hmac = "0.12"
+sha2.workspace = true
+getrandom = { version = "0.2", optional = true }
+
+[dev-dependencies]
+vc-log = { path = "../vc-log" }
+
+[[test]]
+name = "builder_e2e"
+required-features = ["seq-transport"]
+[[test]]
+name = "builder_vectors"
+required-features = ["seq-transport"]
